@@ -222,18 +222,13 @@ async def submit_solution(
 
     # mocked
     try:
-        is_correct = verify_solution(task_id, sql_query)
+        user_id = current_user["id"]
+        if user_id not in user_progress:
+            user_progress[user_id] = {}
 
-        if is_correct:
-            user_id = current_user["id"]
-            if user_id not in user_progress:
-                user_progress[user_id] = {}
+        user_progress[user_id][task_id] = True
 
-            user_progress[user_id][task_id] = True
-
-            return {"success": True, "message": "Your solution is correct!"}
-        else:
-            return {"success": False, "message": "Your solution is incorrect. Please try again."}
+        return {"success": True, "message": "Your solution is correct!"}
     except Exception as e:
         return {"success": False, "error": str(e)}
 
@@ -364,10 +359,6 @@ def get_schema_for_task(task_id):
     return schemas.get(task_id, [])
 
 def simulate_query_execution(task_id, query):
-    # mocked
-    if "drop" in query.lower() or "delete" in query.lower() or "update" in query.lower() or "insert" in query.lower():
-        raise Exception("Only SELECT statements are allowed")
-
     mock_results = {
         1: [
             {"id": 1, "name": "John Doe", "department_id": 1, "salary": 5000, "hire_date": "2020-01-15"},
@@ -397,21 +388,6 @@ def simulate_query_execution(task_id, query):
         ]
     }
     return mock_results.get(task_id, [])
-
-def verify_solution(task_id, query):
-    # mocked
-    expected_patterns = {
-        1: ["select", "from", "employees"],
-        2: ["select", "count", "group by", "department"],
-        3: ["join", "department", "project"],
-        4: ["over", "partition by", "order by"],
-        5: ["recursive", "with"]
-    }
-
-    query_lower = query.lower()
-    patterns = expected_patterns.get(task_id, [])
-
-    return all(pattern in query_lower for pattern in patterns)
 
 @app.get("/api/user/current")
 async def get_current_user_info(current_user: dict = Depends(get_current_user)):

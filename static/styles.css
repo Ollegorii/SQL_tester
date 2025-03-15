@@ -30,6 +30,15 @@ header h1 {
     margin-bottom: 0.5rem;
 }
 
+.logo h1 {
+    font-size: 1.5rem;
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* Optional: adds subtle depth */
+}
+
 header p {
     font-size: 1.1rem;
     color: #7f8c8d;
@@ -322,6 +331,89 @@ select {
     color: #7f8c8d;
 }
 
+.tasks-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.task-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 160px;
+}
+
+.task-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.task-card-header {
+    padding: 1rem;
+    flex-grow: 1;
+}
+
+.task-id {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin-bottom: 0.25rem;
+}
+
+.task-card-title {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #2c3e50;
+    text-decoration: none;
+}
+
+.task-card-title:hover {
+    color: #3498db;
+}
+
+.task-card-footer {
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    border-top: 1px solid #ecf0f1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.task-card-status {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.task-card-status.solved {
+    color: #27ae60;
+}
+
+.task-card-status.unsolved {
+    color: #7f8c8d;
+}
+
+/* Media queries for responsiveness */
+@media (max-width: 1200px) {
+    .tasks-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .tasks-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Task detail page styles */
 .task-detail-container {
     max-width: 1200px;
@@ -497,4 +589,78 @@ select {
 
 .hidden {
     display: none;
+}
+
+/* Custom select styling */
+.filter-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: center;
+}
+
+.custom-select {
+    position: relative;
+    min-width: 160px;
+}
+
+.custom-select select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 100%;
+    padding: 0.6rem 2rem 0.6rem 1rem;
+    font-size: 0.9rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    color: #333;
+}
+
+.custom-select::after {
+    content: '';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #555;
+    pointer-events: none;
+}
+
+.custom-select select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Clear filters button */
+.clear-filters-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    background-color: #f1f1f1;
+    color: #555;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.clear-filters-btn:hover {
+    background-color: #e5e5e5;
+}
+
+.clear-filters-btn:active {
+    transform: translateY(1px);
+}
+
+/* Filter section title */
+.filter-section-title {
+    margin-right: 0.5rem;
+    font-weight: 500;
+    color: #555;
 }

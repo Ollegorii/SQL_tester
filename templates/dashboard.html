@@ -44,22 +44,27 @@
             </aside>
 
             <main class="tasks-container">
-                <h2>SQL Challenges</h2>
+                <h2>SQL Tests</h2>
                 <div class="filter-controls">
-                    <select id="difficulty-filter">
-                        <option value="all">All Difficulties</option>
-                        <option value="Easy">Easy</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Hard">Hard</option>
-                    </select>
-                    <select id="status-filter">
-                        <option value="all">All Tasks</option>
-                        <option value="solved">Solved</option>
-                        <option value="unsolved">Unsolved</option>
-                    </select>
+                    <span class="filter-section-title">Filter:</span>
+                    <div class="custom-select">
+                        <select id="difficulty-filter">
+                            <option value="all">All Difficulties</option>
+                            <option value="Easy">Easy</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Hard">Hard</option>
+                        </select>
+                    </div>
+                    <div class="custom-select">
+                        <select id="status-filter">
+                            <option value="all">All Tasks</option>
+                            <option value="solved">Solved</option>
+                            <option value="unsolved">Unsolved</option>
+                        </select>
+                    </div>
+                    <button id="clear-filters-btn" class="clear-filters-btn">Clear Filters</button>
                 </div>
                 <div class="tasks-list" id="tasks-list">
-                    <!-- Tasks will be loaded here dynamically -->
                     <div class="loading">Loading tasks...</div>
                 </div>
             </main>

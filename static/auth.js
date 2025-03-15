@@ -103,10 +103,14 @@ document.addEventListener('DOMContentLoaded', function() {
             registerError.textContent = '';
             registerError.innerHTML = '<span style="color: green">Registration successful! You can now login.</span>';
 
+            const registeredUsername = username;
+
             registerFormElement.reset();
 
             setTimeout(() => {
                 loginTab.click();
+                document.getElementById('login-username').value = registeredUsername;
+                document.getElementById('login-password').focus();
             }, 1500);
         } catch (error) {
             registerError.textContent = error.message;

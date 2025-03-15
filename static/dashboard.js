@@ -97,34 +97,36 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const taskHtml = filteredTasks.map(task => `
-            <div class="task-item" data-id="${task.id}">
-                <div class="task-info">
-                    <div class="task-number">${task.id}</div>
-                    <a href="/task/${task.id}" class="task-name">${task.name}</a>
+        tasksListElement.innerHTML = '<div class="tasks-grid" id="tasks-grid"></div>';
+        const tasksGrid = document.getElementById('tasks-grid');
+
+        filteredTasks.forEach(task => {
+            const taskCard = document.createElement('div');
+            taskCard.className = 'task-card';
+            taskCard.setAttribute('data-id', task.id);
+
+            taskCard.innerHTML = `
+                <div class="task-card-header">
+                    <div class="task-id">Task #${task.id}</div>
+                    <a href="/task/${task.id}" class="task-card-title">${task.name}</a>
+                </div>
+                <div class="task-card-footer">
                     <div class="task-difficulty ${task.difficulty.toLowerCase()}">${task.difficulty}</div>
+                    <div class="task-card-status ${task.solved ? 'solved' : 'unsolved'}">
+                        ${task.solved ? '✓ Solved' : 'Unsolved'}
+                    </div>
                 </div>
-                <div class="task-status ${task.solved ? 'solved' : 'unsolved'}">
-                    ${task.solved ?
-                        '<span>✓ Solved</span>' :
-                        '<span>Unsolved</span>'
-                    }
-                </div>
-            </div>
-        `).join('');
+            `;
 
-        tasksListElement.innerHTML = taskHtml;
+            tasksGrid.appendChild(taskCard);
 
-        document.querySelectorAll('.task-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                if (!e.target.classList.contains('task-name')) {
-                    const taskId = item.getAttribute('data-id');
-                    window.location.href = `/task/${taskId}`;
+            taskCard.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('task-card-title')) {
+                    window.location.href = `/task/${task.id}`;
                 }
             });
         });
     }
-
 
     function updateStats(stats) {
         document.getElementById('solved-count').textContent = stats.solved_count;
@@ -146,6 +148,14 @@ document.addEventListener('DOMContentLoaded', function() {
     logoutBtn.addEventListener('click', () => {
         localStorage.removeItem('token');
         window.location.href = '/';
+    });
+
+    const clearFiltersBtn = document.getElementById('clear-filters-btn');
+
+    clearFiltersBtn.addEventListener('click', () => {
+        difficultyFilter.value = 'all';
+        statusFilter.value = 'all';
+        renderTasks(allTasks);
     });
 
     loadUserInfo();
