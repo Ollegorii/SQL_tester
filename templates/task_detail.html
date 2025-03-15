@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Task - SQL Tests</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="logo">
+                <h1><a href="/dashboard" class="header-link">SQL Tests</a></h1>
+            </div>
+            <div class="user-info">
+                <span id="username">Loading...</span>
+                <button id="logout-btn" class="btn">Logout</button>
+            </div>
+        </header>
+
+        <div class="task-detail-container">
+            <div class="task-header">
+                <h2 id="task-title">Loading task...</h2>
+                <div class="task-info-bar">
+                    <div class="task-difficulty" id="task-difficulty">Medium</div>
+                    <div class="task-status" id="task-status">Unsolved</div>
+                </div>
+            </div>
+
+            <div class="task-content">
+                <div class="task-description" id="task-description">
+                    Loading task description...
+                </div>
+
+                <div class="schema-section">
+                    <h3>Database Schema</h3>
+                    <div class="schema-info" id="schema-info">
+                        <!-- Schema will be inserted here -->
+                    </div>
+                </div>
+
+                <div class="query-editor-section">
+                    <h3>Your SQL Query</h3>
+                    <div class="editor-container">
+                        <textarea id="sql-editor" placeholder="Write your SQL query here..."></textarea>
+                    </div>
+                    <div class="button-bar">
+                        <button id="run-btn" class="btn primary-btn">Run Query</button>
+                        <button id="submit-btn" class="btn success-btn">Submit Solution</button>
+                    </div>
+                    <div id="query-error" class="error-message"></div>
+                </div>
+
+                <div class="result-section" id="result-section">
+                    <h3>Query Results</h3>
+                    <div class="results-container" id="results-container">
+                        <div class="no-results">Run your query to see results</div>
+                    </div>
+                </div>
+
+                <div id="success-message" class="success-message hidden">
+                    <h3>✅ Correct Solution!</h3>
+                    <p>Congratulations! Your solution is correct.</p>
+                    <button id="back-to-dashboard" class="btn primary-btn">Back to Dashboard</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/task_detail.js"></script>
+</body>
+</html>
