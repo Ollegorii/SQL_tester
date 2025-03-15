@@ -1,12 +1,11 @@
-from fastapi import FastAPI, Request, HTTPException, Depends, status, Form, Body
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi import FastAPI, Request, HTTPException, Depends, status, Body
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
 import jwt
 from datetime import datetime, timedelta
-from typing import Optional, List, Dict, Any
 import uuid
 
 app = FastAPI()
@@ -392,7 +391,7 @@ def simulate_query_execution(task_id, query):
             {"month": "2023-03", "product": "Laptop", "total_sales": 48000, "running_total": 145000},
         ],
         5: [
-            {"employee_name": "John Doe", "level": 1, "manager_name": null},
+            {"employee_name": "John Doe", "level": 1, "manager_name": None},
             {"employee_name": "Jane Smith", "level": 2, "manager_name": "John Doe"},
             {"employee_name": "Bob Johnson", "level": 3, "manager_name": "Jane Smith"},
         ]
