@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Tests - Dashboard</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="logo">
+                <h1>SQL Tester</h1>
+            </div>
+            <div class="user-info">
+                <span id="username">Loading...</span>
+                <button id="logout-btn" class="btn">Logout</button>
+            </div>
+        </header>
+
+        <div class="dashboard-content">
+            <aside class="stats-sidebar">
+                <div class="stats-card">
+                    <h3>Your Progress</h3>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progress-bar">
+                            <div class="progress" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-text">
+                            <span id="completion-percentage">0%</span> complete
+                        </div>
+                    </div>
+                    <div class="stats-details">
+                        <div class="stat-item">
+                            <div class="stat-label">Solved</div>
+                            <div class="stat-value" id="solved-count">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Total</div>
+                            <div class="stat-value" id="total-count">0</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="tasks-container">
+                <h2>SQL Tasks</h2>
+                <div class="filter-controls">
+                    <span class="filter-section-title">Filter:</span>
+                    <div class="filters-group">
+                        <div class="custom-select">
+                            <select id="difficulty-filter">
+                                <option value="all">All Difficulties</option>
+                                <option value="Easy">Easy</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Hard">Hard</option>
+                            </select>
+                        </div>
+                        <div class="custom-select">
+                            <select id="status-filter">
+                                <option value="all">All Tasks</option>
+                                <option value="solved">Solved</option>
+                                <option value="unsolved">Unsolved</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button id="clear-filters-btn" class="clear-filters-btn">Clear Filters</button>
+                </div>
+                <div class="tasks-list" id="tasks-list">
+                    <div class="loading">Loading tasks...</div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="/static/dashboard.js"></script>
+</body>
+</html>
