@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SQL Tester - Dashboard</title>
+    <title>SQL Tests - Dashboard</title>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -44,23 +44,25 @@
             </aside>
 
             <main class="tasks-container">
-                <h2>SQL Tests</h2>
+                <h2>SQL Tasks</h2>
                 <div class="filter-controls">
                     <span class="filter-section-title">Filter:</span>
-                    <div class="custom-select">
-                        <select id="difficulty-filter">
-                            <option value="all">All Difficulties</option>
-                            <option value="Easy">Easy</option>
-                            <option value="Medium">Medium</option>
-                            <option value="Hard">Hard</option>
-                        </select>
-                    </div>
-                    <div class="custom-select">
-                        <select id="status-filter">
-                            <option value="all">All Tasks</option>
-                            <option value="solved">Solved</option>
-                            <option value="unsolved">Unsolved</option>
-                        </select>
+                    <div class="filters-group">
+                        <div class="custom-select">
+                            <select id="difficulty-filter">
+                                <option value="all">All Difficulties</option>
+                                <option value="Easy">Easy</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Hard">Hard</option>
+                            </select>
+                        </div>
+                        <div class="custom-select">
+                            <select id="status-filter">
+                                <option value="all">All Tasks</option>
+                                <option value="solved">Solved</option>
+                                <option value="unsolved">Unsolved</option>
+                            </select>
+                        </div>
                     </div>
                     <button id="clear-filters-btn" class="clear-filters-btn">Clear Filters</button>
                 </div>

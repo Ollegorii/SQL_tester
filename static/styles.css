@@ -36,7 +36,7 @@ header h1 {
     font-weight: 600;
     letter-spacing: 0.5px;
     color: white;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* Optional: adds subtle depth */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 header p {
@@ -237,12 +237,6 @@ input {
 .tasks-container h2 {
     margin-bottom: 1.5rem;
     color: #2c3e50;
-}
-
-.filter-controls {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
 }
 
 select {
@@ -480,6 +474,7 @@ select {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     padding: 0.5rem;
+    min-width: 400px;
 }
 
 .column-header {
@@ -587,21 +582,19 @@ select {
     margin-bottom: 1.5rem;
 }
 
-.hidden {
-    display: none;
-}
-
 /* Custom select styling */
 .filter-controls {
     display: flex;
+    align-items: center;
     gap: 1rem;
     margin-bottom: 1.5rem;
-    align-items: center;
+    flex-wrap: wrap;
 }
 
 .custom-select {
     position: relative;
-    min-width: 160px;
+    min-width: 140px;
+    max-width: 180px;
 }
 
 .custom-select select {
@@ -648,6 +641,7 @@ select {
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s;
+    white-space: nowrap;
 }
 
 .clear-filters-btn:hover {
@@ -658,9 +652,97 @@ select {
     transform: translateY(1px);
 }
 
-/* Filter section title */
 .filter-section-title {
     margin-right: 0.5rem;
     font-weight: 500;
     color: #555;
+    white-space: nowrap;
+}
+
+.filters-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: nowrap;
+    flex: 1;
+}
+
+@media (max-width: 768px) {
+    .dashboard-content {
+        flex-direction: column;
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .stats-sidebar {
+        width: 100%;
+        order: 1;
+    }
+
+    .tasks-container {
+        order: 2;
+    }
+
+    .dashboard-header {
+        padding: 0.75rem 1rem;
+    }
+
+    .logo h1 {
+        font-size: 1.2rem;
+    }
+
+    .filter-controls {
+        gap: 0.75rem;
+    }
+
+    .filters-group {
+        flex: 1;
+        min-width: 0;
+        gap: 0.5rem;
+    }
+
+    .custom-select {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .clear-filters-btn {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.85rem;
+    }
+
+    .tasks-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .task-card {
+        height: auto;
+        min-height: 130px;
+    }
+
+    .stats-sidebar {
+        margin-bottom: 1rem;
+    }
+
+    .tasks-container h2 {
+        font-size: 1.3rem;
+        margin-top: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .task-card-footer {
+        padding: 0.8rem 1rem;
+    }
+
+    .custom-select select {
+        padding: 0.8rem 2rem 0.8rem 1rem;
+    }
+}
+
+@media (max-width: 500px) {
+    .filter-section-title {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
 }

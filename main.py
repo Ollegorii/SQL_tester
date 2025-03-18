@@ -15,7 +15,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # Mock database
-users_db = {}
+users_db = {-1: {"id": -1,"username": "admin","email": "admin@admin.com","password": "admin"}}
 tasks_db = [
     {"id": 1, "name": "Select all employees", "difficulty": "Easy", "description": "Write a query to select all employees from the employees table."},
     {"id": 2, "name": "Count by department", "difficulty": "Easy", "description": "Count the number of employees in each department."},
@@ -24,7 +24,7 @@ tasks_db = [
     {"id": 5, "name": "Recursive CTE", "difficulty": "Hard", "description": "Write a recursive common table expression to solve a hierarchical problem."},
 ]
 
-user_progress = {}  # user_id -> {task_id: True/False}
+user_progress = {-1: {task["id"]: False for task in tasks_db}}  # user_id -> {task_id: True/False}
 
 SECRET_KEY = "your_secret_key_here"
 ALGORITHM = "HS256"
