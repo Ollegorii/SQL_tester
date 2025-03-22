@@ -30,10 +30,18 @@ jobs:
 
     - name: Deploy to server
       env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}  # Приватный ключ для доступа к серверу
-        SERVER_IP: ${{ secrets.SERVER_IP }}  # IP адрес вашего сервера
-        SERVER_USER: ${{ secrets.SERVER_USER }}  # Пользователь для подключения к серверу
-        SERVER_DIR: ${{ secrets.SERVER_DIR }}  # Директория на сервере для деплоя
+        #${{ secrets.SSH_PRIVATE_KEY }}  # Приватный ключ для доступа к серверу
+        SSH_PRIVATE_KEY: b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+            QyNTUxOQAAACCvUWELbG0tJfM8RSRqOBlsTDDPeuGRKPXBE1Fnvoek/wAAAKBPaBfvT2gX
+            7wAAAAtzc2gtZWQyNTUxOQAAACCvUWELbG0tJfM8RSRqOBlsTDDPeuGRKPXBE1Fnvoek/w
+            AAAECuO2lphA+LmGkxFY4dWbFc97Z+ZSeZvQ1Dmbmrh/OrXa9RYQtsbS0l8zxFJGo4GWxM
+            MM964ZEo9cETUWe+h6T/AAAAGdCv0L3QtNC10LrRgSDQvNCw0YjQuNC90LABAgME
+        #${{ secrets.SERVER_IP }}  # IP адрес вашего сервера
+        SERVER_IP: 158.160.94.135
+        # ${{ secrets.SERVER_USER }} # Пользователь для подключения к серверу
+        SERVER_USER: maksmonster
+        #${{ secrets.SERVER_DIR }}  # Директория на сервере для деплоя
+        SERVER_DIR: SQL_tester
       run: |
         mkdir -p ~/.ssh
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
