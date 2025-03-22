@@ -1,0 +1,47 @@
+name: Deploy to Custom Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+    - name: Create virtual environment
+      run: |
+        python -m venv .venv
+        source .venv/bin/activate
+
+    - name: Install dependencies
+      run: |
+        source .venv/bin/activate
+        pip install -r requirements.txt
+
+    - name: Deploy to server
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}  # Приватный ключ для доступа к серверу
+        SERVER_IP: ${{ secrets.SERVER_IP }}  # IP адрес вашего сервера
+        SERVER_USER: ${{ secrets.SERVER_USER }}  # Пользователь для подключения к серверу
+        SERVER_DIR: ${{ secrets.SERVER_DIR }}  # Директория на сервере для деплоя
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts
+
+        # Копируем файлы на сервер
+        rsync -avz --delete --exclude='.git' --exclude='.venv' ./ $SERVER_USER@$SERVER_IP:$SERVER_DIR
+
+        # Запускаем приложение на сервере
+        ssh $SERVER_USER@$SERVER_IP "cd $SERVER_DIR && source .venv/bin/activate && python main.py"
