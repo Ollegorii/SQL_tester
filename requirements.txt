@@ -9,3 +9,4 @@ passlib==1.7.4
 sqlalchemy==1.4.49
 cx-oracle==8.3.0
 pandas==2.2.3
+sqlparse==0.4.4

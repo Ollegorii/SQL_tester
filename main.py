@@ -12,6 +12,8 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy import func
 import pandas as pd
+import re
+import sqlparse
 
 # Импортируем модели из db_init
 from db_init import Base, UserModel, TaskModel, SchemaTableModel, SchemaColumnModel, UserProgressModel, MockResultModel
@@ -36,6 +38,75 @@ SECRET_KEY = "your_secret_key_here"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
+# Информация о требуемых столбцах для каждой задачи
+TASK_COLUMNS_INFO = {
+    1: "Результат должен содержать столбцы: id, name, department_id, salary, hire_date",
+    2: "Результат должен содержать столбцы: department_id, department_name, count",
+    3: "Результат должен содержать столбцы: employee_name, department_name, project_count",
+    4: "Результат должен содержать столбцы: month, product, total_sales, running_total",
+    5: "Результат должен содержать столбцы: employee_id, employee_name, department_id, manager_employee_id"
+}
+
+# Словарь разрешенных таблиц для каждой задачи
+ALLOWED_TABLES = {
+    1: ["employees"],
+    2: ["employees", "departments"],
+    3: ["employees", "departments", "projects", "employee_projects"],
+    4: ["sales", "products", "customers"],
+    5: ["employees", "departments"]
+}
+
+# Обновим описания задач, добавив информацию о требуемых столбцах
+task_descriptions = {
+    1: """
+    Write a query to select all employees from the employees table.
+
+    Expected columns in the result:
+    - id
+    - name
+    - department_id
+    - salary
+    - hire_date
+    """,
+    2: """
+    Count the number of employees in each department.
+
+    Expected columns in the result:
+    - department_id
+    - department_name
+    - count
+    """,
+    3: """
+    Join multiple tables and filter the results based on conditions. 
+    Find the number of projects each employee in the Engineering department is involved in.
+
+    Expected columns in the result:
+    - employee_name
+    - department_name
+    - project_count
+    """,
+    4: """
+    Use window functions to calculate running totals.
+    Calculate the monthly total sales and running total for the 'Laptop' product.
+
+    Expected columns in the result:
+    - month
+    - product
+    - total_sales
+    - running_total
+    """,
+    5: """
+    Write a query to display the employee hierarchy.
+    Show each employee along with their manager.
+
+    Expected columns in the result:
+    - employee_id
+    - employee_name
+    - department_id
+    - manager_employee_id
+    """
+}
+
 # Pydantic модели
 class UserCreate(BaseModel):
     username: str
@@ -58,6 +129,75 @@ class TaskResponse(BaseModel):
     solved: bool = False
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+def is_query_safe(query, task_id):
+    """
+    Проверяет, что запрос обращается только к разрешенным таблицам для данной задачи.
+    
+    Возвращает (is_safe, error_message):
+        - is_safe: булево значение, True если запрос безопасен
+        - error_message: сообщение об ошибке или None, если запрос безопасен
+    """
+    if task_id not in ALLOWED_TABLES:
+        return False, f"Неизвестное задание: {task_id}"
+    
+    allowed = ALLOWED_TABLES[task_id]
+    
+    try:
+        # Используем sqlparse для разбора SQL-запроса
+        parsed = sqlparse.parse(query)
+        if not parsed:
+            return False, "Невозможно разобрать запрос"
+        
+        # Преобразуем запрос в нижний регистр для упрощения поиска
+        query_lower = query.lower()
+        
+        # Проверяем на наличие системных таблиц или пользовательских таблиц
+        system_tables = ["users", "user_progress", "tasks", "mock_results", 
+                        "schema_tables", "schema_columns"]
+        
+        for table in system_tables:
+            if re.search(r'\b' + table + r'\b', query_lower):
+                return False, f"Запрос содержит обращение к запрещенной системной таблице: {table}"
+        
+        # Проверяем, что все таблицы в запросе есть в списке разрешенных
+        # Простая проверка на наличие названий таблиц в тексте запроса
+        # Это не идеальный парсинг SQL, но базовая защита
+        used_tables = []
+        for table in get_all_possible_tables():
+            if re.search(r'\b' + table + r'\b', query_lower):
+                used_tables.append(table)
+        
+        # Проверяем, что все использованные таблицы разрешены для данной задачи
+        disallowed_tables = [table for table in used_tables if table not in allowed]
+        if disallowed_tables:
+            return False, f"Запрос содержит обращение к таблицам, которые не относятся к данной задаче: {', '.join(disallowed_tables)}"
+        
+        # Дополнительно проверяем на наличие SQL-инъекций или опасных операций
+        dangerous_operations = ["drop", "truncate", "delete", "update", "insert", "alter", "create", 
+                              "grant", "revoke", "commit", "rollback", "savepoint"]
+        
+        for op in dangerous_operations:
+            if re.search(r'\b' + op + r'\b', query_lower):
+                return False, f"Запрос содержит запрещенную операцию: {op}"
+        
+        return True, None
+    except Exception as e:
+        return False, f"Ошибка при проверке безопасности запроса: {str(e)}"
+
+def get_all_possible_tables():
+    """Возвращает список всех возможных таблиц в системе"""
+    # Объединяем все разрешенные таблицы из всех задач
+    all_tables = set()
+    for tables in ALLOWED_TABLES.values():
+        all_tables.update(tables)
+    
+    # Добавляем системные таблицы
+    all_tables.update(["users", "user_progress", "tasks", "mock_results", 
+                    "schema_tables", "schema_columns"])
+    
+    return all_tables
+
 
 # Зависимость для получения сессии БД
 def get_db():
@@ -128,14 +268,13 @@ def execute_query(query, engine):
 
 
 def compare_results(actual_results, expected_data):
-    """Сравнивает полученный результат с эталонным"""
+    """Сравнивает полученный результат с эталонным и возвращает результат и информацию об ошибке"""
     if actual_results is None or expected_data is None:
         return False
     
     try:
         # Проверяем, что количество записей совпадает
         if len(actual_results) != len(expected_data):
-            print(f"Row count mismatch: actual {len(actual_results)}, expected {len(expected_data)}")
             return False
         
         # Если результаты пустые, считаем совпадением
@@ -147,11 +286,6 @@ def compare_results(actual_results, expected_data):
         expected_keys = set(k.lower() for k in expected_data[0].keys())
         
         if actual_keys != expected_keys:
-            print(f"Column mismatch:")
-            print(f"  Actual columns: {sorted(actual_keys)}")
-            print(f"  Expected columns: {sorted(expected_keys)}")
-            print(f"  Missing in actual: {sorted(expected_keys - actual_keys)}")
-            print(f"  Extra in actual: {sorted(actual_keys - expected_keys)}")
             return False
         
         # Создаем нормализованные копии для сравнения
@@ -190,20 +324,16 @@ def compare_results(actual_results, expected_data):
         # Проверка, что каждая строка совпадает
         for i, (actual_row, expected_row) in enumerate(zip(sorted_actual, sorted_expected)):
             if actual_row != expected_row:
-                print(f"Row {i} mismatch:")
-                for key in all_keys:
-                    if actual_row.get(key) != expected_row.get(key):
-                        print(f"  Key '{key}':")
-                        print(f"    Actual: {actual_row.get(key)}")
-                        print(f"    Expected: {expected_row.get(key)}")
                 return False
         
         return True
     except Exception as e:
+        # Логируем ошибку только на сервере
         print(f"Error comparing results: {e}")
         import traceback
         traceback.print_exc()
         return False
+
 
 
 
@@ -382,13 +512,17 @@ async def get_task(task_id: int, current_user: UserModel = Depends(get_current_u
             "columns": columns_data
         })
     
+    # Получаем информацию о требуемых столбцах
+    columns_info = TASK_COLUMNS_INFO.get(task_id, "")
+    
     return {
         "id": task.id,
         "name": task.name,
         "difficulty": task.difficulty,
         "description": task.description,
         "solved": is_solved,
-        "schema": schema_info
+        "schema": schema_info,
+        "columns_info": columns_info
     }
 
 @app.post("/api/tasks/{task_id}/run")
@@ -404,19 +538,64 @@ async def run_query(
     if not sql_query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty")
     
+    # Проверяем безопасность запроса
+    is_safe, error_message = is_query_safe(sql_query, task_id)
+    if not is_safe:
+        return {"success": False, "message": error_message}
+    
+    # Получаем информацию о требуемых столбцах
+    columns_info = TASK_COLUMNS_INFO.get(task_id, "")
+    
     # Выполняем запрос на тестовой БД
     try:
         results_list, error = execute_query(sql_query, test_engine)
         
         if error:
-            return {"success": False, "error": f"Query execution error: {error}"}
+            # Возвращаем ошибку и информацию о столбцах пользователю
+            return {
+                "success": False, 
+                "message": f"Query execution error: {error}. {columns_info}"
+            }
+        
+        # Проверяем соответствие столбцов
+        if results_list:
+            try:
+                # Получаем мок-результаты из БД для проверки столбцов
+                mock_result = db.query(MockResultModel).filter(MockResultModel.task_id == task_id).first()
+                if mock_result:
+                    expected_results = json.loads(mock_result.result_data)
+                    if expected_results:
+                        # Преобразуем имена столбцов к нижнему регистру для сравнения
+                        actual_keys = set(k.lower() for k in results_list[0].keys())
+                        expected_keys = set(k.lower() for k in expected_results[0].keys())
+                        
+                        if actual_keys != expected_keys:
+                            # Находим отличия
+                            missing = sorted(expected_keys - actual_keys)
+                            extra = sorted(actual_keys - expected_keys)
+                            
+                            warning_message = f"Внимание! {columns_info}"
+                            if missing:
+                                warning_message += f" Отсутствуют столбцы: {', '.join(missing)}."
+                            if extra:
+                                warning_message += f" Лишние столбцы: {', '.join(extra)}."
+                            
+                            return {
+                                "success": True, 
+                                "results": results_list,
+                                "warning": warning_message
+                            }
+            except Exception as column_err:
+                # Если возникла ошибка при проверке столбцов, игнорируем и продолжаем
+                pass
         
         # Возвращаем результаты напрямую, так как они уже в формате списка словарей
         return {"success": True, "results": results_list}
     except Exception as e:
         import traceback
-        traceback.print_exc()
-        return {"success": False, "error": f"Failed to execute query: {str(e)}"}
+        traceback.print_exc()  # Для отладки сервера
+        return {"success": False, "message": f"Failed to execute query: {str(e)}", "columns_info": columns_info}
+
 
 
 @app.post("/api/tasks/{task_id}/submit")
@@ -433,24 +612,57 @@ async def submit_solution(
         if not sql_query.strip():
             raise HTTPException(status_code=400, detail="Query cannot be empty")
         
+        # Проверяем безопасность запроса
+        is_safe, error_message = is_query_safe(sql_query, task_id)
+        if not is_safe:
+            return {"success": False, "message": error_message}
+        
+        # Получаем информацию о требуемых столбцах
+        columns_info = TASK_COLUMNS_INFO.get(task_id, "")
+        
         # Получаем мок-результаты из БД
         mock_result = db.query(MockResultModel).filter(MockResultModel.task_id == task_id).first()
         if not mock_result:
-            return {"success": False, "error": "No expected results found for this task"}
+            return {"success": False, "message": "No expected results found for this task"}
         
         # Выполняем запрос на тестовой БД
         actual_results, error = execute_query(sql_query, test_engine)
         
         if error:
-            return {"success": False, "error": f"Query execution error: {error}"}
+            return {
+                "success": False, 
+                "message": f"Query execution error: {error}. {columns_info}"
+            }
         
         # Парсим эталонные результаты из JSON
         expected_results = json.loads(mock_result.result_data)
         
+        # Проверяем соответствие столбцов перед сравнением данных
+        if actual_results and expected_results:
+            # Преобразуем имена столбцов к нижнему регистру для сравнения
+            actual_keys = set(k.lower() for k in actual_results[0].keys())
+            expected_keys = set(k.lower() for k in expected_results[0].keys())
+            
+            if actual_keys != expected_keys:
+                # Находим отличия
+                missing = sorted(expected_keys - actual_keys)
+                extra = sorted(actual_keys - expected_keys)
+                
+                error_message = f"Результат запроса имеет неверные столбцы. {columns_info}"
+                if missing:
+                    error_message += f" Отсутствуют столбцы: {', '.join(missing)}."
+                if extra:
+                    error_message += f" Лишние столбцы: {', '.join(extra)}."
+                
+                return {"success": False, "message": error_message}
+        
         # Сравниваем полученные результаты с эталонными
         is_correct = compare_results(actual_results, expected_results)
         if not is_correct:
-            return {"success": False, "message": "Your solution is incorrect. The results do not match the expected output."}
+            # Формируем подробное сообщение об ошибке
+            error_message = f"Результат вашего запроса не соответствует ожидаемому. Пожалуйста, проверьте: 1) Правильность имен столбцов ({columns_info}); 2) Данные и их форматы; 3) Порядок сортировки, если требуется."
+            
+            return {"success": False, "message": error_message}
         
         # Обновляем прогресс пользователя, если решение верное
         progress = db.query(UserProgressModel).filter(
@@ -461,11 +673,9 @@ async def submit_solution(
         if not progress:
             # Если записи нет, создаем новую с автогенерируемым ID
             try:
-                # Исправленное получение max ID
                 max_id_result = db.query(func.max(UserProgressModel.id)).scalar()
                 next_id = 1 if max_id_result is None else max_id_result + 1
             except Exception as e:
-                print(f"Error getting max ID: {e}")
                 next_id = 1
             
             progress = UserProgressModel(
@@ -483,17 +693,21 @@ async def submit_solution(
         
         return {"success": True, "message": "Your solution is correct!"}
     
-    except HTTPException:
-        # Пробрасываем HTTP исключения
-        raise
+    except HTTPException as he:
+        raise he
     
     except Exception as e:
-        # Логируем и возвращаем внутренние ошибки
+        # Только логируем ошибку на сервере, но даем понятное сообщение пользователю
         print(f"Error submitting solution: {e}")
         import traceback
-        traceback.print_exc()
+        traceback.print_exc()  # Для отладки сервера
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+        return {
+            "success": False, 
+            "message": f"An error occurred while processing your query. Please check your SQL syntax and that all required columns ({columns_info}) are included."
+        }
+
+
 
 @app.get("/api/user/current")
 async def get_current_user_info(current_user: UserModel = Depends(get_current_user)):
