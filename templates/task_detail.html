@@ -1,11 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=0.60">
-    <title>SQL Task - SQL Tester</title>
-    <link rel="stylesheet" href="/static/styles.css">
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=0.85">
+        <title>SQL Task - SQL Tests</title>
+        <link rel="stylesheet" href="/static/styles.css">
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/eclipse.min.css">
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/sql/sql.min.js"></script>
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                overflow-x: hidden;
+            }
+
+            .dashboard-header {
+                width: 100vw;
+                max-width: 100%;
+                left: 0;
+                right: 0;
+                box-sizing: border-box;
+                margin: 0;
+                position: relative;
+            }
+
+            .CodeMirror {
+                height: auto;
+                min-height: 150px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 14px;
+                line-height: 1.6;
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            }
+
+            .cm-s-eclipse .cm-keyword {
+                color: #7986cb;
+            }
+
+            .cm-s-eclipse .cm-operator {
+                color: #9575cd;
+            }
+
+            .cm-s-eclipse .cm-number {
+                color: #f57f17;
+            }
+
+            .cm-s-eclipse .cm-string {
+                color: #558b2f;
+            }
+
+            .cm-s-eclipse .cm-comment {
+                color: #9e9e9e;
+            }
+
+            .editor-container {
+                position: relative;
+                margin-bottom: 1.5rem;
+            }
+
+            @media (max-width: 768px) {
+                .task-detail-container {
+                    padding: 0.75rem;
+                    max-width: 100%;
+                    width: 100%;
+                    box-sizing: border-box;
+                }
+
+                .task-content {
+                    padding: 1rem;
+                }
+
+                .CodeMirror {
+                    font-size: 13px;
+                }
+            }
+        </style>
+    </head>
 <body>
     <div class="dashboard-container">
         <header class="dashboard-header">
@@ -55,8 +134,12 @@
                         <textarea id="sql-editor" placeholder="Write your SQL query here..."></textarea>
                     </div>
                     <div class="button-bar">
-                        <button id="run-btn" class="btn primary-btn">Run Query</button>
-                        <button id="submit-btn" class="btn success-btn">Submit Solution</button>
+                        <button id="run-btn" class="btn primary-btn">
+                            <i class="fas fa-play"></i> Run Query
+                        </button>
+                        <button id="submit-btn" class="btn success-btn">
+                            <i class="fas fa-check"></i> Submit Solution
+                        </button>
                     </div>
                     <div id="query-error" class="error-message"></div>
                 </div>
@@ -69,7 +152,7 @@
                 </div>
 
                 <div id="success-message" class="success-message hidden">
-                    <h3>✅ Correct Solution!</h3>
+                    <h3><i class="fas fa-check"></i> Correct Solution!</h3>
                     <p>Congratulations! Your solution is correct.</p>
                     <button id="back-to-dashboard" class="btn primary-btn">Back to Dashboard</button>
                 </div>
