@@ -7,15 +7,13 @@ from sqlalchemy.orm import sessionmaker, relationship, Session
 import uuid
 import cx_Oracle
 
-# Настройки базы данных Oracle с cx_oracle
+
 DB_URL = "oracle+cx_oracle://USER_APP:maksim2003@158.160.94.135:1521/XE"
 
-# Создаем движок SQLAlchemy
 engine = create_engine(DB_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# Определение моделей данных
 class UserModel(Base):
     __tablename__ = "users"
     
@@ -61,7 +59,7 @@ class MockResultModel(Base):
     
     id = Column(Integer, primary_key=True)
     task_id = Column(Integer, ForeignKey("tasks.id"))
-    result_data = Column(Text)  # JSON строка с мок-результатами
+    result_data = Column(Text) 
 
 def drop_all_tables():
     """Удаляет все таблицы из БД"""
@@ -95,13 +93,11 @@ def create_test_tables():
     """Создает тестовые таблицы с данными для выполнения SQL-запросов"""
     print("Starting test tables creation...")
     
-    # Создаем отдельное соединение напрямую через cx_Oracle
     try:
         dsn = cx_Oracle.makedsn("158.160.94.135", 1521, service_name="XE")
         conn = cx_Oracle.connect(user="USER_APP", password="maksim2003", dsn=dsn)
         cursor = conn.cursor()
-        
-        # Удаляем тестовые таблицы, если они существуют
+
         tables_to_drop = [
             "sales", "employee_projects", "projects", "products", 
             "customers", "employees", "departments"
@@ -114,7 +110,6 @@ def create_test_tables():
             except:
                 print(f"Table {table} did not exist, continuing...")
         
-        # Создаем таблицы в соответствии со схемами заданий
         
         # 1. Таблица departments
         cursor.execute("""
