@@ -746,3 +746,64 @@ select {
         margin-bottom: 0.5rem;
     }
 }
+
+/* Result schema section styling - matching database schema */
+.result-schema-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.result-schema-section h3 {
+    margin-bottom: 1rem;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.result-schema-section h3 i {
+    color: #3498db;
+}
+
+.result-schema-description {
+    margin-bottom: 1rem;
+    color: #555;
+}
+
+.result-schema-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    margin-bottom: 0.5rem;
+    border: 1px solid #ecf0f1;
+    border-radius: 4px;
+}
+
+table.result-schema-content {
+    width: 100%;
+    min-width: 500px;
+    border-collapse: collapse;
+}
+
+table.result-schema-content th {
+    background-color: #ecf0f1;
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: bold;
+    border-bottom: 1px solid #ddd;
+}
+
+table.result-schema-content td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #ddd;
+}
+
+table.result-schema-content tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.column-description {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
