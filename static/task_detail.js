@@ -1,3 +1,5 @@
+let editor;
+
 document.addEventListener('DOMContentLoaded', function() {
     const token = localStorage.getItem('token');
 
@@ -5,6 +7,25 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = '/';
         return;
     }
+
+    function initializeEditor() {
+        const sqlEditor = document.getElementById('sql-editor');
+
+        editor = CodeMirror.fromTextArea(sqlEditor, {
+            mode: "text/x-sql",
+            theme: "eclipse",
+            lineNumbers: true,
+            indentWithTabs: true,
+            tabSize: 4,
+            lineWrapping: true,
+            matchBrackets: true,
+            autofocus: false
+        });
+
+        setTimeout(() => editor.refresh(), 10);
+    }
+
+    initializeEditor();
 
     const pathParts = window.location.pathname.split('/');
     const taskId = pathParts[pathParts.length - 1];
@@ -57,6 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
             taskDescription.textContent = task.description;
 
             renderSchema(task.schema);
+            renderResultSchema(task.result_schema);
 
         } catch (error) {
             console.error('Error loading task:', error);
@@ -127,8 +149,49 @@ document.addEventListener('DOMContentLoaded', function() {
         schemaInfo.innerHTML = schemaHtml;
     }
 
+    // Render expected result schema
+    function renderResultSchema(resultSchema) {
+        const resultSchemaInfo = document.getElementById('result-schema-info');
+
+        if (!resultSchema || resultSchema.length === 0) {
+            resultSchemaInfo.innerHTML = '<div class="no-schema">No result schema information available for this task.</div>';
+            return;
+        }
+
+        let schemaHtml = `
+            <div class="result-schema-wrapper">
+                <table class="result-schema-content">
+                    <thead>
+                        <tr>
+                            <th>Column Name</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        resultSchema.forEach(column => {
+            schemaHtml += `
+                <tr>
+                    <td>${column.name}</td>
+                    <td>${column.type}</td>
+                    <td class="column-description">${column.description}</td>
+                </tr>
+            `;
+        });
+
+        schemaHtml += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        resultSchemaInfo.innerHTML = schemaHtml;
+    }
+
     async function runQuery() {
-        const query = sqlEditor.value.trim();
+        const query = editor.getValue().trim();
 
         if (!query) {
             queryError.textContent = 'Query cannot be empty';
@@ -156,6 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(data.error || 'Failed to run query');
             }
 
+            // Display results
             renderQueryResults(data.results);
 
         } catch (error) {
@@ -163,6 +227,7 @@ document.addEventListener('DOMContentLoaded', function() {
             resultsContainer.innerHTML = '<div class="no-results">Error running query</div>';
         }
     }
+
 
     function renderQueryResults(results) {
         if (!results || results.length === 0) {
@@ -200,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function submitSolution() {
-        const query = sqlEditor.value.trim();
+        const query = editor.getValue().trim();
 
         if (!query) {
             queryError.textContent = 'Query cannot be empty';
@@ -228,8 +293,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (data.success) {
+                // Show success message
                 successMessage.classList.remove('hidden');
 
+                // Update task status
                 taskStatus.textContent = 'Solved';
                 taskStatus.className = 'task-status solved';
             } else {
@@ -240,6 +307,7 @@ document.addEventListener('DOMContentLoaded', function() {
             queryError.textContent = error.message;
         }
     }
+
 
     runBtn.addEventListener('click', runQuery);
     submitBtn.addEventListener('click', submitSolution);
