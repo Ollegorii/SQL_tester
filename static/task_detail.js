@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
             taskDescription.textContent = task.description;
 
             renderSchema(task.schema);
+            renderResultSchema(task.result_schema);
 
         } catch (error) {
             console.error('Error loading task:', error);
@@ -125,6 +126,46 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         schemaInfo.innerHTML = schemaHtml;
+    }
+
+    function renderResultSchema(resultSchema) {
+        const resultSchemaInfo = document.getElementById('result-schema-info');
+
+        if (!resultSchema || resultSchema.length === 0) {
+            resultSchemaInfo.innerHTML = '<div class="no-schema">No result schema information available for this task.</div>';
+            return;
+        }
+
+        let schemaHtml = `
+            <div class="result-schema-wrapper">
+                <table class="result-schema-content">
+                    <thead>
+                        <tr>
+                            <th>Column Name</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        resultSchema.forEach(column => {
+            schemaHtml += `
+                <tr>
+                    <td>${column.name}</td>
+                    <td>${column.type}</td>
+                    <td class="column-description">${column.description}</td>
+                </tr>
+            `;
+        });
+
+        schemaHtml += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        resultSchemaInfo.innerHTML = schemaHtml;
     }
 
     async function runQuery() {
