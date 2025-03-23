@@ -181,6 +181,7 @@ async def get_task(task_id: int, current_user: dict = Depends(get_current_user))
     is_solved = user_progress.get(user_id, {}).get(task_id, False)
 
     schema_info = get_schema_for_task(task_id)
+    result_schema = get_result_schema_for_task(task_id)
 
     return {
         "id": task["id"],
@@ -188,7 +189,8 @@ async def get_task(task_id: int, current_user: dict = Depends(get_current_user))
         "difficulty": task["difficulty"],
         "description": task["description"],
         "solved": is_solved,
-        "schema": schema_info
+        "schema": schema_info,
+        "result_schema": result_schema,
     }
 
 @app.post("/api/tasks/{task_id}/run")
@@ -388,6 +390,41 @@ def simulate_query_execution(task_id, query):
         ]
     }
     return mock_results.get(task_id, [])
+
+def get_result_schema_for_task(task_id):
+    result_schemas = {
+        1: [
+            {"name": "id", "type": "INTEGER", "description": "Employee ID"},
+            {"name": "name", "type": "VARCHAR", "description": "Employee name"},
+            {"name": "department_id", "type": "INTEGER", "description": "Department ID"},
+            {"name": "salary", "type": "DECIMAL", "description": "Employee salary"},
+            {"name": "hire_date", "type": "DATE", "description": "Date when employee was hired"}
+        ],
+        2: [
+            {"name": "department_id", "type": "INTEGER", "description": "Department ID"},
+            {"name": "department_name", "type": "VARCHAR", "description": "Department name"},
+            {"name": "count", "type": "INTEGER", "description": "Number of employees in the department"}
+        ],
+        3: [
+            {"name": "employee_name", "type": "VARCHAR", "description": "Employee name"},
+            {"name": "department_name", "type": "VARCHAR", "description": "Department name"},
+            {"name": "project_count", "type": "INTEGER", "description": "Number of projects the employee is working on"}
+        ],
+        4: [
+            {"name": "month", "type": "VARCHAR/DATE", "description": "Month of sales"},
+            {"name": "product", "type": "VARCHAR", "description": "Product name"},
+            {"name": "total_sales", "type": "DECIMAL", "description": "Total sales amount for the month"},
+            {"name": "running_total", "type": "DECIMAL", "description": "Running total of sales"}
+        ],
+        5: [
+            {"name": "employee_name", "type": "VARCHAR", "description": "Employee name"},
+            {"name": "level", "type": "INTEGER", "description": "Hierarchy level"},
+            {"name": "manager_name", "type": "VARCHAR", "description": "Manager name (NULL for top level)"}
+        ]
+    }
+
+    return result_schemas.get(task_id, [])
+
 
 @app.get("/api/user/current")
 async def get_current_user_info(current_user: dict = Depends(get_current_user)):
