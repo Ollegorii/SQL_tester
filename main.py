@@ -449,8 +449,6 @@ async def submit_solution(
         
         # Сравниваем полученные результаты с эталонными
         is_correct = compare_results(actual_results, expected_results)
-        print(actual_results)
-        print(expected_results)
         if not is_correct:
             return {"success": False, "message": "Your solution is incorrect. The results do not match the expected output."}
         
