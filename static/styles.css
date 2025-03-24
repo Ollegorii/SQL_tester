@@ -443,7 +443,7 @@ select {
     line-height: 1.6;
 }
 
-.schema-section {
+/* .schema-section {
     margin-bottom: 2rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid #ecf0f1;
@@ -484,7 +484,7 @@ select {
 
 .column-row:nth-child(even) {
     background-color: #f9f9f9;
-}
+} */
 
 .query-editor-section {
     margin-bottom: 2rem;
@@ -747,14 +747,14 @@ select {
     }
 }
 
-/* Result schema section styling - matching database schema */
-.result-schema-section {
+/* Generic schema section styling for both database and result schemas */
+.schema-section {
     margin-bottom: 2rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid #ecf0f1;
 }
 
-.result-schema-section h3 {
+.schema-section h3 {
     margin-bottom: 1rem;
     color: #2c3e50;
     display: flex;
@@ -762,16 +762,26 @@ select {
     gap: 0.5rem;
 }
 
-.result-schema-section h3 i {
+.schema-section h3 i {
     color: #3498db;
 }
 
-.result-schema-description {
+.schema-description {
     margin-bottom: 1rem;
     color: #555;
 }
 
-.result-schema-wrapper {
+.schema-table {
+    margin-bottom: 1.5rem;
+}
+
+.schema-table-name {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #3498db;
+}
+
+.schema-table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     width: 100%;
@@ -780,13 +790,13 @@ select {
     border-radius: 4px;
 }
 
-table.result-schema-content {
+table.schema-table-content {
     width: 100%;
     min-width: 500px;
     border-collapse: collapse;
 }
 
-table.result-schema-content th {
+table.schema-table-content th {
     background-color: #ecf0f1;
     padding: 0.75rem;
     text-align: left;
@@ -794,16 +804,30 @@ table.result-schema-content th {
     border-bottom: 1px solid #ddd;
 }
 
-table.result-schema-content td {
+table.schema-table-content td {
     padding: 0.75rem;
     border-bottom: 1px solid #ddd;
 }
 
-table.result-schema-content tr:nth-child(even) {
+table.schema-table-content tr:nth-child(even) {
     background-color: #f9f9f9;
 }
 
 .column-description {
     color: #7f8c8d;
     font-size: 0.9rem;
+}
+
+.scroll-hint {
+    display: inline-block;
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.8rem;
+    color: #7f8c8d;
+}
+
+@media (max-width: 768px) {
+    .scroll-hint {
+        display: inline-block;
+    }
 }

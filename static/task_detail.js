@@ -122,25 +122,31 @@ document.addEventListener('DOMContentLoaded', function() {
             schemaHtml += `
                 <div class="schema-table">
                     <div class="schema-table-name">${table.table_name}</div>
-                    <div class="schema-columns">
-                        <div class="column-header">
-                            <div>Column</div>
-                            <div>Type</div>
-                            <div>Constraints</div>
-                        </div>
+                    <div class="schema-table-wrapper">
+                        <table class="schema-table-content">
+                            <thead>
+                                <tr>
+                                    <th>Column</th>
+                                    <th>Type</th>
+                                    <th>Constraints</th>
+                                </tr>
+                            </thead>
+                            <tbody>
             `;
 
             table.columns.forEach(column => {
                 schemaHtml += `
-                    <div class="column-row">
-                        <div>${column.name}</div>
-                        <div>${column.type}</div>
-                        <div>${column.constraints}</div>
-                    </div>
+                    <tr>
+                        <td>${column.name}</td>
+                        <td>${column.type}</td>
+                        <td>${column.constraints}</td>
+                    </tr>
                 `;
             });
 
             schemaHtml += `
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             `;
@@ -159,22 +165,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         let schemaHtml = `
-            <div class="result-schema-wrapper">
-                <table class="result-schema-content">
-                    <thead>
-                        <tr>
-                            <th>Column Name</th>
-                            <th>Type</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            <div class="schema-table">
+                <div class="schema-table-wrapper">
+                    <table class="schema-table-content">
+                        <thead>
+                            <tr>
+                                <th>Column Name</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
         `;
 
         resultSchema.forEach(column => {
             schemaHtml += `
                 <tr>
-                    <td>${column.name}</td>
+                    <td><strong>${column.name}</strong></td>
                     <td>${column.type}</td>
                     <td class="column-description">${column.description}</td>
                 </tr>
@@ -182,8 +189,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         schemaHtml += `
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         `;
 
