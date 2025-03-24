@@ -35,7 +35,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const taskStatus = document.getElementById('task-status');
     const taskDescription = document.getElementById('task-description');
     const schemaInfo = document.getElementById('schema-info');
-    const sqlEditor = document.getElementById('sql-editor');
     const runBtn = document.getElementById('run-btn');
     const submitBtn = document.getElementById('submit-btn');
     const queryError = document.getElementById('query-error');
@@ -121,35 +120,78 @@ document.addEventListener('DOMContentLoaded', function() {
         schema.forEach(table => {
             schemaHtml += `
                 <div class="schema-table">
-                    <div class="schema-table-name">${table.table_name}</div>
-                    <div class="schema-columns">
-                        <div class="column-header">
-                            <div>Column</div>
-                            <div>Type</div>
-                            <div>Constraints</div>
-                        </div>
+                    <div class="schema-table-header">
+                        <div class="schema-table-name">${table.table_name}</div>
+                        <button class="copy-btn copy-tooltip" data-table="${table.table_name}" title="Copy table name">
+                            <i class="fas fa-copy"></i>
+                            <span class="tooltip-text">Copied!</span>
+                        </button>
+                    </div>
+                    <div class="schema-table-wrapper">
+                        <table class="schema-table-content">
+                            <thead>
+                                <tr>
+                                    <th>Column</th>
+                                    <th>Type</th>
+                                    <th>Constraints</th>
+                                </tr>
+                            </thead>
+                            <tbody>
             `;
 
             table.columns.forEach(column => {
                 schemaHtml += `
-                    <div class="column-row">
-                        <div>${column.name}</div>
-                        <div>${column.type}</div>
-                        <div>${column.constraints}</div>
-                    </div>
+                    <tr>
+                        <td>${column.name}</td>
+                        <td>${column.type}</td>
+                        <td>${column.constraints}</td>
+                    </tr>
                 `;
             });
 
             schemaHtml += `
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             `;
         });
 
         schemaInfo.innerHTML = schemaHtml;
+
+        document.querySelectorAll('.copy-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const tableName = this.getAttribute('data-table');
+                copyTextToClipboard(tableName, this);
+            });
+        });
     }
 
-    // Render expected result schema
+    function copyTextToClipboard(text, buttonElement) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            const successful = document.execCommand('copy');
+
+            if (successful) {
+                buttonElement.classList.add('show-tooltip');
+
+                setTimeout(() => {
+                    buttonElement.classList.remove('show-tooltip');
+                }, 1500);
+            }
+        } catch (err) {
+            console.error('Unable to copy', err);
+        }
+
+        document.body.removeChild(textArea);
+    }
+
     function renderResultSchema(resultSchema) {
         const resultSchemaInfo = document.getElementById('result-schema-info');
 
@@ -159,22 +201,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         let schemaHtml = `
-            <div class="result-schema-wrapper">
-                <table class="result-schema-content">
-                    <thead>
-                        <tr>
-                            <th>Column Name</th>
-                            <th>Type</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            <div class="schema-table">
+                <div class="schema-table-wrapper">
+                    <table class="schema-table-content">
+                        <thead>
+                            <tr>
+                                <th>Column Name</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
         `;
 
         resultSchema.forEach(column => {
             schemaHtml += `
                 <tr>
-                    <td>${column.name}</td>
+                    <td><strong>${column.name}</strong></td>
                     <td>${column.type}</td>
                     <td class="column-description">${column.description}</td>
                 </tr>
@@ -182,8 +225,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         schemaHtml += `
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         `;
 
@@ -219,7 +263,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(data.error || 'Failed to run query');
             }
 
-            // Display results
             renderQueryResults(data.results);
 
         } catch (error) {
@@ -293,10 +336,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (data.success) {
-                // Show success message
                 successMessage.classList.remove('hidden');
 
-                // Update task status
                 taskStatus.textContent = 'Solved';
                 taskStatus.className = 'task-status solved';
             } else {

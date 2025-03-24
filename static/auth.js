@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const password = document.getElementById('login-password').value;
 
         if (!username || !password) {
-            loginError.textContent = 'Please fill in all fields';
+            loginError.textContent = 'Пожалуйста, заполни все поля';
             return;
         }
 
@@ -72,12 +72,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const confirmPassword = document.getElementById('reg-confirm-password').value;
 
         if (!username || !email || !password || !confirmPassword) {
-            registerError.textContent = 'Please fill in all fields';
+            registerError.textContent = 'Пожалуйста, заполни все поля';
             return;
         }
 
         if (password !== confirmPassword) {
-            registerError.textContent = 'Passwords do not match';
+            registerError.textContent = 'Пароли не совпадают';
             return;
         }
 
@@ -97,11 +97,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.detail || 'Registration failed');
+                throw new Error(data.detail || 'Не удалось выполнить регистрацию');
             }
 
             registerError.textContent = '';
-            registerError.innerHTML = '<span style="color: green">Registration successful! You can now login.</span>';
+            registerError.innerHTML = '<span style="color: green">Регистрация успешна! Теперь ты можешь войти.</span>';
 
             const registeredUsername = username;
 
