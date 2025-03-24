@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error loading dashboard:', error);
             tasksListElement.innerHTML = `
                 <div class="error">
-                    Failed to load data. Please try again or log out and back in.
+                    Ошибка при загрузке данных. Пожалуйста, повторите попытку
                 </div>
             `;
         }
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (filteredTasks.length === 0) {
-            tasksListElement.innerHTML = '<div class="loading">No tasks match your filters</div>';
+            tasksListElement.innerHTML = '<div class="loading">Нет задач, подходящих под фильтры</div>';
             return;
         }
 
@@ -107,13 +107,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
             taskCard.innerHTML = `
                 <div class="task-card-header">
-                    <div class="task-id">Task #${task.id}</div>
+                    <div class="task-id">Задача #${task.id}</div>
                     <a href="/task/${task.id}" class="task-card-title">${task.name}</a>
                 </div>
                 <div class="task-card-footer">
                     <div class="task-difficulty ${task.difficulty.toLowerCase()}">${task.difficulty}</div>
                     <div class="task-card-status ${task.solved ? 'solved' : 'unsolved'}">
-                        ${task.solved ? '✓ Solved' : 'Unsolved'}
+                        ${task.solved ? '✓ Решена' : 'Не решена'}
                     </div>
                 </div>
             `;

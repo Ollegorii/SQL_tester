@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -92,29 +92,29 @@
                 <h1><a href="/dashboard" class="header-link">SQL Tester</a></h1>
             </div>
             <div class="user-info">
-                <span id="username">Loading...</span>
-                <button id="logout-btn" class="btn">Logout</button>
+                <span id="username">Загрузка...</span>
+                <button id="logout-btn" class="btn">Выйти</button>
             </div>
         </header>
 
         <div class="task-detail-container">
             <div class="task-header">
-                <h2 id="task-title">Loading task...</h2>
+                <h2 id="task-title">Задача загружается...</h2>
                 <div class="task-info-bar">
-                    <div class="task-difficulty" id="task-difficulty">Medium</div>
-                    <div class="task-status" id="task-status">Unsolved</div>
+                    <div class="task-difficulty" id="task-difficulty">Средняя</div>
+                    <div class="task-status" id="task-status">Не решена</div>
                 </div>
             </div>
 
             <div class="task-content">
                 <div class="task-description" id="task-description">
-                    Loading task description...
+                    Описание задачи загружается...
                 </div>
 
                 <div class="schema-section">
-                    <h3>Database Schema</h3>
+                    <h3>Схема таблиц</h3>
                     <div class="schema-description">
-                        The following tables are available for this task:
+                        Таблицы, доступные в этой задаче:
                     </div>
                     <div id="schema-info">
                         <!-- Schema will be inserted here -->
@@ -122,9 +122,9 @@
                 </div>
 
                 <div class="schema-section">
-                    <h3>Result Schema</h3>
+                    <h3>Схема результата</h3>
                     <div class="schema-description">
-                        Your query should return results with the following columns:
+                        Твой запрос должен вернуть таблицу со следующими колонками:
                     </div>
                     <div id="result-schema-info">
                         <!-- Result schema will be inserted here -->
@@ -132,32 +132,32 @@
                 </div>
 
                 <div class="query-editor-section">
-                    <h3>Your SQL Query</h3>
+                    <h3>Твой SQL запрос</h3>
                     <div class="editor-container">
                         <textarea id="sql-editor" placeholder="Write your SQL query here..."></textarea>
                     </div>
                     <div class="button-bar">
                         <button id="run-btn" class="btn primary-btn">
-                            <i class="fas fa-play"></i> Run Query
+                            <i class="fas fa-play"></i>
                         </button>
                         <button id="submit-btn" class="btn success-btn">
-                            <i class="fas fa-check"></i> Submit Solution
+                            <i class="fas fa-check"></i>
                         </button>
                     </div>
                     <div id="query-error" class="error-message"></div>
                 </div>
 
                 <div class="result-section" id="result-section">
-                    <h3>Query Results</h3>
+                    <h3>Результаты запроса</h3>
                     <div class="results-container" id="results-container">
-                        <div class="no-results">Run your query to see results</div>
+                        <div class="no-results">Запусти запрос, чтобы увидеть результаты</div>
                     </div>
                 </div>
 
                 <div id="success-message" class="success-message hidden">
-                    <h3><i class="fas fa-check"></i> Correct Solution!</h3>
-                    <p>Congratulations! Your solution is correct.</p>
-                    <button id="back-to-dashboard" class="btn primary-btn">Back to Dashboard</button>
+                    <h3><i class="fas fa-check"></i>  Верное решение!</h3>
+                    <p> </p>
+                    <button id="back-to-dashboard" class="btn primary-btn">На главную</button>
                 </div>
             </div>
         </div>
