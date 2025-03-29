@@ -11,15 +11,111 @@ document.addEventListener('DOMContentLoaded', function() {
     function initializeEditor() {
         const sqlEditor = document.getElementById('sql-editor');
 
+        function indentSQL(cm, options) {
+            if (cm.getOption("disableInput")) return CodeMirror.Pass;
+
+            const cursor = cm.getCursor();
+            const line = cm.getLine(cursor.line);
+            const prevLine = cursor.line > 0 ? cm.getLine(cursor.line - 1) : "";
+            const token = cm.getTokenAt(cursor);
+
+            const openBracketMatch = prevLine.match(/.*\(\s*$/);
+            const keywordMatch = prevLine.match(/\b(SELECT|FROM|WHERE|GROUP BY|ORDER BY|HAVING|JOIN)\b.*$/i);
+            const clauseKeywordMatch = line.match(/^\s*(SELECT|FROM|WHERE|GROUP BY|ORDER BY|HAVING|JOIN)\b/i);
+
+            if (clauseKeywordMatch) {
+                return 0;
+            }
+
+            if (openBracketMatch) {
+                return cm.getOption("indentUnit") * 2;
+            }
+
+            if (keywordMatch) {
+                return cm.getOption("indentUnit");
+            }
+
+            return CodeMirror.Pass;
+        }
+
         editor = CodeMirror.fromTextArea(sqlEditor, {
             mode: "text/x-sql",
             theme: "eclipse",
             lineNumbers: true,
-            indentWithTabs: true,
-            tabSize: 4,
+            indentWithTabs: false,
+            indentUnit: 2,
+            tabSize: 2,
+            smartIndent: true,
             lineWrapping: true,
             matchBrackets: true,
-            autofocus: false
+            autoCloseBrackets: true,
+            styleActiveLine: true,
+            foldGutter: true,
+            gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+
+            extraKeys: {
+                "Tab": function(cm) {
+                    if (cm.somethingSelected()) {
+                        cm.indentSelection("add");
+                    } else {
+                        cm.replaceSelection("  ", "end");
+                    }
+                },
+                "Shift-Tab": function(cm) {
+                    cm.indentSelection("subtract");
+                },
+                "Ctrl-/": "toggleComment",
+                "Cmd-/": "toggleComment",
+                "Alt-F": "findPersistent",
+                "Ctrl-Space": function(cm) {
+                    cm.showHint({hint: CodeMirror.hint.sql});
+                },
+                "Enter": function(cm) {
+                    const cursor = cm.getCursor();
+                    const line = cm.getLine(cursor.line);
+
+                    const indentation = line.match(/^\s*/)[0];
+                    const openParenMatch = line.match(/.*\(\s*$/);
+                    const keywordMatch = line.match(/\b(SELECT|FROM|WHERE|GROUP BY|ORDER BY|HAVING|JOIN)\b.*$/i);
+
+                    if (openParenMatch) {
+                        cm.replaceSelection("\n" + indentation + "  ");
+                        return;
+                    } else if (keywordMatch) {
+                        cm.replaceSelection("\n" + indentation + "  ");
+                        return;
+                    }
+
+                    cm.replaceSelection("\n" + indentation);
+                }
+            },
+
+            autoCloseBrackets: {
+                pairs: '()[]{}\'\'""',
+                triples: '',
+                explode: '{}',
+                override: true
+            }
+        });
+
+        editor.on("beforeChange", function(cm, change) {
+            if (change.origin === "+input") {
+                const cursor = cm.getCursor();
+                const line = cm.getLine(cursor.line);
+                const char = change.text[0];
+
+                if ((char === "'" || char === '"') && line.charAt(cursor.ch) === char) {
+                    change.cancel();
+                    cm.setCursor({line: cursor.line, ch: cursor.ch + 1});
+                    return;
+                }
+
+                if ((char === ")" || char === "]" || char === "}") && line.charAt(cursor.ch) === char) {
+                    change.cancel();
+                    cm.setCursor({line: cursor.line, ch: cursor.ch + 1});
+                    return;
+                }
+            }
         });
 
         setTimeout(() => editor.refresh(), 10);
