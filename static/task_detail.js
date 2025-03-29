@@ -43,6 +43,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const backToDashboardBtn = document.getElementById('back-to-dashboard');
     const logoutBtn = document.getElementById('logout-btn');
 
+    function getDifficultyInRussian(difficulty) {
+        const translations = {
+          "Easy": "Легкая",
+          "Medium": "Средняя",
+          "Hard": "Сложная"
+        };
+        return translations[difficulty] || difficulty;
+    }
+
     async function loadTaskData() {
         try {
             const response = await fetch(`/api/tasks/${taskId}`, {
@@ -63,14 +72,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const task = await response.json();
 
             taskTitle.textContent = task.name;
-            taskDifficulty.textContent = task.difficulty;
+            taskDifficulty.textContent = getDifficultyInRussian(task.difficulty);
             taskDifficulty.className = `task-difficulty ${task.difficulty.toLowerCase()}`;
 
             if (task.solved) {
-                taskStatus.textContent = 'Solved';
+                taskStatus.textContent = 'Решена';
                 taskStatus.className = 'task-status solved';
             } else {
-                taskStatus.textContent = 'Unsolved';
+                taskStatus.textContent = 'Не решена';
                 taskStatus.className = 'task-status unsolved';
             }
 
@@ -83,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error loading task:', error);
             taskDescription.innerHTML = `
                 <div class="error">
-                    Failed to load task data. Please try again or return to dashboard.
+                    Ошибка при загрузке данных задачи. Попробуй снова или вернись на главную.
                 </div>
             `;
         }
@@ -111,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderSchema(schema) {
         if (!schema || schema.length === 0) {
-            schemaInfo.innerHTML = '<div class="no-schema">No schema information available for this task.</div>';
+            schemaInfo.innerHTML = '<div class="no-schema">Нет доступных схем для этой задачи.</div>';
             return;
         }
 
@@ -124,16 +133,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="schema-table-name">${table.table_name}</div>
                         <button class="copy-btn copy-tooltip" data-table="${table.table_name}" title="Copy table name">
                             <i class="fas fa-copy"></i>
-                            <span class="tooltip-text">Copied!</span>
+                            <span class="tooltip-text">Скопировано</span>
                         </button>
                     </div>
                     <div class="schema-table-wrapper">
                         <table class="schema-table-content">
                             <thead>
                                 <tr>
-                                    <th>Column</th>
-                                    <th>Type</th>
-                                    <th>Constraints</th>
+                                    <th>Имя колонки</th>
+                                    <th>Тип данных</th>
+                                    <th>Ограничения</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -196,7 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const resultSchemaInfo = document.getElementById('result-schema-info');
 
         if (!resultSchema || resultSchema.length === 0) {
-            resultSchemaInfo.innerHTML = '<div class="no-schema">No result schema information available for this task.</div>';
+            resultSchemaInfo.innerHTML = '<div class="no-schema">Нет схемы результата для этой задачи.</div>';
             return;
         }
 
@@ -206,9 +215,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <table class="schema-table-content">
                         <thead>
                             <tr>
-                                <th>Column Name</th>
-                                <th>Type</th>
-                                <th>Description</th>
+                                <th>Имя колонки</th>
+                                <th>Тип данных</th>
+                                <th>Описание</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -238,12 +247,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const query = editor.getValue().trim();
 
         if (!query) {
-            queryError.textContent = 'Query cannot be empty';
+            queryError.textContent = 'Запрос не может быть пустым.';
             return;
         }
 
         queryError.textContent = '';
-        resultsContainer.innerHTML = '<div class="loading">Running query...</div>';
+        resultsContainer.innerHTML = '<div class="loading">Запрос выполняется...</div>';
 
         try {
             const response = await fetch(`/api/tasks/${taskId}/run`, {
@@ -267,14 +276,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             queryError.textContent = error.message;
-            resultsContainer.innerHTML = '<div class="no-results">Error running query</div>';
+            resultsContainer.innerHTML = '<div class="no-results">Ошибка при выполнении запроса.</div>';
         }
     }
 
 
     function renderQueryResults(results) {
         if (!results || results.length === 0) {
-            resultsContainer.innerHTML = '<div class="no-results">Query returned no results</div>';
+            resultsContainer.innerHTML = '<div class="no-results">Запрос ничего не вернул.</div>';
             return;
         }
 
@@ -311,7 +320,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const query = editor.getValue().trim();
 
         if (!query) {
-            queryError.textContent = 'Query cannot be empty';
+            queryError.textContent = 'Запрос не может быть пустым.';
             return;
         }
 
@@ -341,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 taskStatus.textContent = 'Solved';
                 taskStatus.className = 'task-status solved';
             } else {
-                queryError.textContent = data.message || 'Your solution is incorrect. Please try again.';
+                queryError.textContent = data.message || 'Решение неверно.';
             }
 
         } catch (error) {
