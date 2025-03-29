@@ -869,3 +869,7 @@ table.schema-table-content tr:nth-child(even) {
     visibility: visible;
     opacity: 1;
 }
+
+p, div {
+    font-family: 'Helvetica', 'Arial', sans-serif;
+}
