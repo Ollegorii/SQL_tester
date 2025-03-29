@@ -76,6 +76,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function getDifficultyInRussian(difficulty) {
+        const translations = {
+          "Easy": "Легкая",
+          "Medium": "Средняя",
+          "Hard": "Сложная"
+        };
+        return translations[difficulty] || difficulty;
+    }
+
     function renderTasks(tasks) {
         const difficulty = difficultyFilter.value;
         const status = statusFilter.value;
@@ -111,7 +120,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <a href="/task/${task.id}" class="task-card-title">${task.name}</a>
                 </div>
                 <div class="task-card-footer">
-                    <div class="task-difficulty ${task.difficulty.toLowerCase()}">${task.difficulty}</div>
+                    <div class="task-difficulty ${task.difficulty.toLowerCase()}">
+                        ${getDifficultyInRussian(task.difficulty)}
+                    </div>
                     <div class="task-card-status ${task.solved ? 'solved' : 'unsolved'}">
                         ${task.solved ? '✓ Решена' : 'Не решена'}
                     </div>

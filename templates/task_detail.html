@@ -2,7 +2,7 @@
 <html lang="ru">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=0.85">
         <title>SQL Task - SQL Tests</title>
         <link rel="stylesheet" href="/static/styles.css">
 
@@ -11,6 +11,17 @@
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/sql/sql.min.js"></script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/comment/comment.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/selection/active-line.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchtags.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/foldcode.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/foldgutter.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/brace-fold.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/comment-fold.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/foldgutter.min.css">
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
@@ -34,7 +45,7 @@
 
             .CodeMirror {
                 height: auto;
-                min-height: 150px;
+                min-height: 180px;
                 border: 1px solid #ddd;
                 border-radius: 4px;
                 font-size: 14px;
@@ -44,6 +55,7 @@
 
             .cm-s-eclipse .cm-keyword {
                 color: #7986cb;
+                font-weight: bold;
             }
 
             .cm-s-eclipse .cm-operator {
@@ -60,6 +72,42 @@
 
             .cm-s-eclipse .cm-comment {
                 color: #9e9e9e;
+                font-style: italic;
+            }
+
+            .CodeMirror-activeline-background {
+                background: rgba(232, 242, 254, 0.5);
+            }
+
+            .CodeMirror-matchingbracket {
+                background-color: rgba(0, 255, 0, 0.15) !important;
+                color: inherit !important;
+                font-weight: bold;
+                outline: 1px solid rgba(0, 255, 0, 0.5);
+            }
+
+            .CodeMirror-nonmatchingbracket {
+                background-color: rgba(255, 0, 0, 0.15) !important;
+                color: inherit !important;
+                outline: 1px solid rgba(255, 0, 0, 0.5);
+            }
+
+            .CodeMirror-foldgutter {
+                width: 1.2em;
+            }
+
+            .CodeMirror-foldgutter-open,
+            .CodeMirror-foldgutter-folded {
+                color: #555;
+                cursor: pointer;
+            }
+
+            .CodeMirror-foldgutter-open:after {
+                content: "▾";
+            }
+
+            .CodeMirror-foldgutter-folded:after {
+                content: "▸";
             }
 
             .editor-container {
