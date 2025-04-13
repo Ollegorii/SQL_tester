@@ -28,6 +28,8 @@
 - **Средне-серый:** `#7f8c8d` - Вторичный текст и иконки
 - **Тёмно-серый:** `#333333` - Основной цвет текста
 
+<img width="1117" alt="image" src="https://github.com/user-attachments/assets/ee2046c8-1471-484a-973b-ceb68a1bc9f5" />
+
 ---
 
 ## Типографика
@@ -48,6 +50,8 @@
 - **Обычный:** 400
 - **Средний:** 500
 - **Жирный:** 600-700
+
+<img width="1111" alt="image" src="https://github.com/user-attachments/assets/eba33aff-8876-440c-887c-c5526cb38210" />
 
 ---
 
@@ -87,6 +91,9 @@
 - **Примеры использования:** "Выйти"
 - **CSS-класс:** `#logout-btn`
 
+<img width="1108" alt="image" src="https://github.com/user-attachments/assets/34ba9cbe-f787-47f7-abe7-bd4973e49f56" />
+
+
 ### Элементы форм
 
 #### Текстовый ввод
@@ -105,6 +112,9 @@
 - **Примеры использования:** Фильтр сложности, фильтр статуса
 - **CSS-класс:** `.custom-select select`
 
+<img width="1110" alt="image" src="https://github.com/user-attachments/assets/1b95fc38-33a5-441f-bb85-dfd48f51d57b" />
+
+
 ### Карточки и контейнеры
 
 #### Стандартная карточка
@@ -119,6 +129,9 @@
 - **Размер:** Margin-bottom: 2rem, Padding-bottom: 1rem
 - **Примеры использования:** Разделы схемы, схема результатов
 - **CSS-класс:** `.schema-section`
+
+<img width="1116" alt="image" src="https://github.com/user-attachments/assets/0c6c7c2b-2f3f-4122-8131-9dab40276ee2" />
+
 
 ---
 
@@ -157,6 +170,9 @@
 - **Шрифт:** Размер: 0.9rem
 - **Margin-top:** 1rem
 - **CSS-класс:** `.error-message`
+
+<img width="717" alt="image" src="https://github.com/user-attachments/assets/a1d6c48c-b96c-4024-928f-34072c21cbf4" />
+
 
 ---
 
@@ -263,6 +279,8 @@
 - **Шрифт:** Размер: 0.85rem
 - **CSS-класс:** `.task-card-status.solved, .task-card-status.unsolved`
 
+<img width="1484" alt="image" src="https://github.com/user-attachments/assets/fb694657-6de6-4747-aa57-c6bcf18bd997" />
+
 ---
 
 ## Страница с деталями задания
@@ -330,10 +348,7 @@
 - **Четные строки:** Фон: `#f9f9f9`
 - **CSS-класс:** `table.schema-table-content`
 
-### Подсказка о прокрутке
-- **Шрифт:** Размер: 0.8rem, Цвет: `#7f8c8d`
-- **Margin:** 0.25rem 0 0.5rem 0
-- **CSS-класс:** `.scroll-hint`
+<img width="954" alt="image" src="https://github.com/user-attachments/assets/798f585a-687f-4279-9459-392797e041f7" />
 
 ### SQL-редактор
 - **Шрифт:** Семейство: 'Consolas', 'Monaco', 'Courier New', monospace, Размер: 14px
@@ -376,3 +391,5 @@
 - **Border-radius:** 4px
 - **Заголовок:** Цвет: `#2e7d32`, Margin-bottom: 0.5rem
 - **CSS-класс:** `.success-message, .success-message h3`
+
+<img width="979" alt="image" src="https://github.com/user-attachments/assets/10d82238-5cf3-40bb-b575-41b6363ad217" />
