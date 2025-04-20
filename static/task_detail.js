@@ -11,32 +11,27 @@ document.addEventListener('DOMContentLoaded', function() {
     function initializeEditor() {
         const sqlEditor = document.getElementById('sql-editor');
 
-        function indentSQL(cm, options) {
-            if (cm.getOption("disableInput")) return CodeMirror.Pass;
+        CodeMirror.defineInitHook(function(cm) {
+            cm.setOption("indent", function(state, textAfter) {
+                const cursor = cm.getCursor();
+                const prevLine = cursor.line > 0 ? cm.getLine(cursor.line - 1) : "";
 
-            const cursor = cm.getCursor();
-            const line = cm.getLine(cursor.line);
-            const prevLine = cursor.line > 0 ? cm.getLine(cursor.line - 1) : "";
-            const token = cm.getTokenAt(cursor);
+                const openBracketMatch = prevLine.match(/.*\(\s*$/);
+                const keywordMatch = prevLine.match(/\b(SELECT|FROM|WHERE|GROUP BY|ORDER BY|HAVING|JOIN)\b.*$/i);
+                const clauseKeywordMatch = textAfter.match(/^\s*(SELECT|FROM|WHERE|GROUP BY|ORDER BY|HAVING|JOIN)\b/i);
 
-            const openBracketMatch = prevLine.match(/.*\(\s*$/);
-            const keywordMatch = prevLine.match(/\b(SELECT|FROM|WHERE|GROUP BY|ORDER BY|HAVING|JOIN)\b.*$/i);
-            const clauseKeywordMatch = line.match(/^\s*(SELECT|FROM|WHERE|GROUP BY|ORDER BY|HAVING|JOIN)\b/i);
-
-            if (clauseKeywordMatch) {
-                return 0;
-            }
-
-            if (openBracketMatch) {
-                return cm.getOption("indentUnit") * 2;
-            }
-
-            if (keywordMatch) {
-                return cm.getOption("indentUnit");
-            }
-
-            return CodeMirror.Pass;
-        }
+                if (clauseKeywordMatch) {
+                    return 0;
+                }
+                if (openBracketMatch) {
+                    return cm.getOption("indentUnit") * 2;
+                }
+                if (keywordMatch) {
+                    return cm.getOption("indentUnit");
+                }
+                return CodeMirror.Pass;
+            });
+        });
 
         editor = CodeMirror.fromTextArea(sqlEditor, {
             mode: "text/x-sql",
@@ -208,6 +203,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const user = await response.json();
             document.getElementById('username').textContent = user.username;
+
+            // Check if user is admin and add admin badge if they are
+            if (user.is_admin) {
+                // Add admin badge
+                const userInfoElement = document.querySelector('.user-info');
+                const usernameElement = document.getElementById('username');
+
+                const adminBadge = document.createElement('span');
+                adminBadge.className = 'admin-badge';
+                adminBadge.textContent = 'ADMIN';
+
+                userInfoElement.insertBefore(adminBadge, usernameElement);
+            }
         } catch (error) {
             console.error('Error loading user info:', error);
             document.getElementById('username').textContent = 'User';
