@@ -917,3 +917,17 @@ p, div {
 .admin-create-btn i {
     margin-right: 0.5rem;
 }
+
+/* Secret key field styling */
+.secret-key-group {
+    position: relative;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px dashed #ecf0f1;
+}
+
+.input-hint {
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    margin-top: 0.5rem;
+}
