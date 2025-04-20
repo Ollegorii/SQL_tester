@@ -346,14 +346,14 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
     try:
         existing_user = db.query(UserModel).filter(UserModel.username == user.username).first()
         if existing_user:
-            raise HTTPException(status_code=400, detail="Username already registered")
+            raise HTTPException(status_code=400, detail="Логин уже зарегистрирован")
 
         existing_email = db.query(UserModel).filter(UserModel.email == user.email).first()
         if existing_email:
-            raise HTTPException(status_code=400, detail="Email already registered")
+            raise HTTPException(status_code=400, detail="Почта уже зарегистрирована")
 
         if user.secret_key and user.secret_key != ADMIN_SECRET_KEY:
-            raise HTTPException(status_code=400, detail="Wrong admin key")
+            raise HTTPException(status_code=400, detail="Неверный код администратора")
 
         user_id = str(uuid.uuid4())
         new_user = UserModel(
@@ -408,7 +408,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     if not user or user.password != form_data.password:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail="Неверный логин или пароль",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -466,7 +466,7 @@ async def get_task(task_id: int, current_user: UserModel = Depends(get_current_u
     task = db.query(TaskModel).filter(TaskModel.id == task_id).first()
     result_schema = get_result_schema_for_task(task_id)
     if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(status_code=404, detail="Задача не найдена")
 
     progress = db.query(UserProgressModel).filter(
         UserProgressModel.user_id == current_user.id,
@@ -519,7 +519,7 @@ async def run_query(
     sql_query = query_data.get("query", "")
 
     if not sql_query.strip():
-        raise HTTPException(status_code=400, detail="Query cannot be empty")
+        raise HTTPException(status_code=400, detail="Запрос не может быть пустым")
 
     # Проверяем безопасность запроса
     is_safe, error_message = is_query_safe(sql_query, task_id)
@@ -589,7 +589,7 @@ async def submit_solution(
         sql_query = solution_data.get("query", "")
 
         if not sql_query.strip():
-            raise HTTPException(status_code=400, detail="Query cannot be empty")
+            raise HTTPException(status_code=400, detail="Запрос не может быть пустым")
 
         is_safe, error_message = is_query_safe(sql_query, task_id)
         if not is_safe:
@@ -690,7 +690,7 @@ async def get_current_user_info(current_user: UserModel = Depends(get_current_us
 @app.get("/api/admin/tables")
 async def get_available_tables(current_user: dict = Depends(get_current_user)):
     if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
+        raise HTTPException(status_code=403, detail="Требуются права администратора")
 
     # In a real app, this would query your database system
     # Here we're using mock data
@@ -751,7 +751,7 @@ async def create_task(
     current_user: dict = Depends(get_current_user)
 ):
     if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Admin access required")
+        raise HTTPException(status_code=403, detail="Требуются права администратора")
 
     # Validate required fields
     required_fields = ["name", "description", "difficulty", "solution_query", "tables"]
@@ -782,7 +782,7 @@ async def run_admin_query(
     current_user: dict = Depends(get_current_user)
 ):
     if not current_user.get("is_admin", False):
-        raise HTTPException(status_code=403, detail="Требуются права админа")
+        raise HTTPException(status_code=403, detail="Требуются права администратора")
 
     sql_query = query_data.get("query", "")
     selected_tables = query_data.get("tables", [])
