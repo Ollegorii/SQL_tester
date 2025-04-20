@@ -70,6 +70,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const user = await response.json();
             document.getElementById('username').textContent = user.username;
+
+            if (user.is_admin) {
+                const userInfoElement = document.querySelector('.user-info');
+                const usernameElement = document.getElementById('username');
+
+                const adminBadge = document.createElement('span');
+                adminBadge.className = 'admin-badge';
+                adminBadge.textContent = 'ADMIN';
+
+                userInfoElement.insertBefore(adminBadge, usernameElement);
+
+                const adminButtonContainer = document.getElementById('admin-button-container');
+                if (adminButtonContainer) {
+                    adminButtonContainer.style.display = 'block';
+
+                    document.getElementById('create-task-btn').addEventListener('click', () => {
+                        window.location.href = '/admin/create-task';
+                    });
+                }
+            }
         } catch (error) {
             console.error('Error loading user info:', error);
             document.getElementById('username').textContent = 'User';

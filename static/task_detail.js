@@ -203,6 +203,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const user = await response.json();
             document.getElementById('username').textContent = user.username;
+
+            // Check if user is admin and add admin badge if they are
+            if (user.is_admin) {
+                // Add admin badge
+                const userInfoElement = document.querySelector('.user-info');
+                const usernameElement = document.getElementById('username');
+
+                const adminBadge = document.createElement('span');
+                adminBadge.className = 'admin-badge';
+                adminBadge.textContent = 'ADMIN';
+
+                userInfoElement.insertBefore(adminBadge, usernameElement);
+            }
         } catch (error) {
             console.error('Error loading user info:', error);
             document.getElementById('username').textContent = 'User';

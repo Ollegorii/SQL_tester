@@ -15,7 +15,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # Mock database
-users_db = {-1: {"id": -1,"username": "admin","email": "admin@admin.com","password": "admin"}}
+users_db = {-1: {"id": -1, "username": "admin", "email": "admin@admin.com", "password": "admin", "is_admin": True}}
 tasks_db = [
     {"id": 1, "name": "Select all employees", "difficulty": "Easy", "description": "Write a query to select all employees from the employees table."},
     {"id": 2, "name": "Count by department", "difficulty": "Easy", "description": "Count the number of employees in each department."},
@@ -39,6 +39,7 @@ class User(BaseModel):
     id: str
     username: str
     email: EmailStr
+    is_admin: bool = False
 
 class Token(BaseModel):
     access_token: str
@@ -425,14 +426,176 @@ def get_result_schema_for_task(task_id):
 
     return result_schemas.get(task_id, [])
 
-
 @app.get("/api/user/current")
 async def get_current_user_info(current_user: dict = Depends(get_current_user)):
     return {
         "id": current_user["id"],
         "username": current_user["username"],
-        "email": current_user["email"]
+        "email": current_user["email"],
+        "is_admin": current_user.get("is_admin", False),
     }
+
+@app.get("/api/admin/tables")
+async def get_available_tables(current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_admin", False):
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    # In a real app, this would query your database system
+    # Here we're using mock data
+    available_tables = [
+        {
+            "name": "employees",
+            "columns": [
+                {"name": "id", "type": "INTEGER", "constraints": "PRIMARY KEY"},
+                {"name": "name", "type": "VARCHAR(100)", "constraints": "NOT NULL"},
+                {"name": "department_id", "type": "INTEGER", "constraints": "FOREIGN KEY"},
+                {"name": "salary", "type": "DECIMAL(10,2)", "constraints": ""},
+                {"name": "hire_date", "type": "DATE", "constraints": ""},
+            ]
+        },
+        {
+            "name": "departments",
+            "columns": [
+                {"name": "id", "type": "INTEGER", "constraints": "PRIMARY KEY"},
+                {"name": "name", "type": "VARCHAR(100)", "constraints": "NOT NULL"},
+                {"name": "location", "type": "VARCHAR(100)", "constraints": ""},
+            ]
+        },
+        {
+            "name": "projects",
+            "columns": [
+                {"name": "id", "type": "INTEGER", "constraints": "PRIMARY KEY"},
+                {"name": "name", "type": "VARCHAR(100)", "constraints": "NOT NULL"},
+                {"name": "start_date", "type": "DATE", "constraints": ""},
+                {"name": "end_date", "type": "DATE", "constraints": ""},
+            ]
+        },
+        {
+            "name": "employee_projects",
+            "columns": [
+                {"name": "employee_id", "type": "INTEGER", "constraints": "FOREIGN KEY"},
+                {"name": "project_id", "type": "INTEGER", "constraints": "FOREIGN KEY"},
+                {"name": "role", "type": "VARCHAR(100)", "constraints": ""},
+            ]
+        },
+        {
+            "name": "sales",
+            "columns": [
+                {"name": "id", "type": "INTEGER", "constraints": "PRIMARY KEY"},
+                {"name": "product_id", "type": "INTEGER", "constraints": "FOREIGN KEY"},
+                {"name": "customer_id", "type": "INTEGER", "constraints": "FOREIGN KEY"},
+                {"name": "sale_date", "type": "DATE", "constraints": "NOT NULL"},
+                {"name": "quantity", "type": "INTEGER", "constraints": "NOT NULL"},
+                {"name": "amount", "type": "DECIMAL(10,2)", "constraints": "NOT NULL"},
+            ]
+        }
+    ]
+
+    return available_tables
+
+@app.post("/api/admin/tasks")
+async def create_task(
+    task_data: dict = Body(...),
+    current_user: dict = Depends(get_current_user)
+):
+    if not current_user.get("is_admin", False):
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    # Validate required fields
+    required_fields = ["name", "description", "difficulty", "solution_query", "tables"]
+    for field in required_fields:
+        if field not in task_data:
+            raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
+
+    # Create new task ID
+    task_id = len(tasks_db) + 1
+
+    # Add new task to tasks_db
+    new_task = {
+        "id": task_id,
+        "name": task_data["name"],
+        "description": task_data["description"],
+        "difficulty": task_data["difficulty"],
+        "solution_query": task_data["solution_query"],
+        "tables": task_data["tables"]
+    }
+
+    tasks_db.append(new_task)
+
+    return {"success": True, "task_id": task_id}
+
+@app.post("/api/admin/run-query")
+async def run_admin_query(
+    query_data: dict = Body(...),
+    current_user: dict = Depends(get_current_user)
+):
+    if not current_user.get("is_admin", False):
+        raise HTTPException(status_code=403, detail="Требуются права админа")
+
+    sql_query = query_data.get("query", "")
+    selected_tables = query_data.get("tables", [])
+
+    if not sql_query.strip():
+        raise HTTPException(status_code=400, detail="Запрос не может быть пустым")
+
+    # In a real application, you would:
+    # 1. Validate the SQL for security
+    # 2. Run it against a test database with the selected tables
+    # 3. Return the results
+
+    # For this demo, we'll simulate query execution with mock data
+    try:
+        # This is a simulated function that would normally execute the SQL
+        results = simulate_admin_query_execution(sql_query, selected_tables)
+        return {"success": True, "results": results}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+def simulate_admin_query_execution(query, selected_tables):
+    # Very basic SQL validation
+    if "drop" in query.lower() or "delete" in query.lower() or "update" in query.lower() or "insert" in query.lower():
+        raise Exception("Only SELECT statements are allowed")
+
+    # Generate a sample result set based on the query and selected tables
+    # In a real application, this would execute the query against a database
+
+    # Mock data generation based on tables
+    if not selected_tables:
+        return []
+
+    # Create mock results - simple demonstration data
+    columns = []
+    data = []
+
+    # Generate some sample data based on the tables
+    if "employees" in selected_tables:
+        columns = ["id", "name", "department_id", "salary", "hire_date"]
+        data = [
+            {"id": 1, "name": "John Doe", "department_id": 1, "salary": 5000, "hire_date": "2020-01-15"},
+            {"id": 2, "name": "Jane Smith", "department_id": 2, "salary": 6000, "hire_date": "2019-05-20"},
+            {"id": 3, "name": "Bob Johnson", "department_id": 1, "salary": 4500, "hire_date": "2021-03-10"}
+        ]
+    elif "departments" in selected_tables:
+        columns = ["id", "name", "location"]
+        data = [
+            {"id": 1, "name": "Engineering", "location": "New York"},
+            {"id": 2, "name": "Marketing", "location": "San Francisco"},
+            {"id": 3, "name": "HR", "location": "Chicago"}
+        ]
+    elif "sales" in selected_tables:
+        columns = ["id", "product_id", "customer_id", "sale_date", "quantity", "amount"]
+        data = [
+            {"id": 1, "product_id": 101, "customer_id": 201, "sale_date": "2023-01-15", "quantity": 2, "amount": 120.50},
+            {"id": 2, "product_id": 102, "customer_id": 202, "sale_date": "2023-01-20", "quantity": 1, "amount": 85.99},
+            {"id": 3, "product_id": 101, "customer_id": 203, "sale_date": "2023-02-05", "quantity": 3, "amount": 180.75}
+        ]
+
+    return data
+
+@app.get("/admin/create-task", response_class=HTMLResponse)
+async def admin_create_task(request: Request):
+    return templates.TemplateResponse("admin_create_task.html", {"request": request})
+
 
 if __name__ == "__main__":
     import uvicorn
