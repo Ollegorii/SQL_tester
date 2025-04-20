@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SQL Tests - Dashboard</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
     <div class="dashboard-container">
@@ -39,6 +40,14 @@
                             <div class="stat-label">Всего</div>
                             <div class="stat-value" id="total-count">0</div>
                         </div>
+                    </div>
+                </div>
+
+                <div id="admin-button-container" class="admin-button-container" style="display: none;">
+                    <div class="admin-button">
+                        <button id="create-task-btn" class="btn primary-btn admin-create-btn">
+                            <i class="fas fa-plus-circle"></i> Добавить новую задачу
+                        </button>
                     </div>
                 </div>
             </aside>
