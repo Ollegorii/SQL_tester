@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
+from typing import Optional
 import jwt
 from datetime import datetime, timedelta
 import uuid
@@ -34,6 +35,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 SECRET_KEY = "your_secret_key_here"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ADMIN_SECRET_KEY = "admin"
 
 # Информация о требуемых столбцах для каждой задачи
 TASK_COLUMNS_INFO = {
@@ -123,6 +125,7 @@ class UserCreate(BaseModel):
     username: str
     email: EmailStr
     password: str
+    secret_key: Optional[str] = None
 
 class User(BaseModel):
     id: str
@@ -349,12 +352,16 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
         if existing_email:
             raise HTTPException(status_code=400, detail="Email already registered")
 
+        if user.secret_key and user.secret_key != ADMIN_SECRET_KEY:
+            raise HTTPException(status_code=400, detail="Wrong admin key")
+
         user_id = str(uuid.uuid4())
         new_user = UserModel(
             id=user_id,
             username=user.username,
             email=user.email,
-            password=user.password
+            password=user.password,
+            # add is_admin here
         )
 
         db.add(new_user)
