@@ -70,6 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const email = document.getElementById('reg-email').value;
         const password = document.getElementById('reg-password').value;
         const confirmPassword = document.getElementById('reg-confirm-password').value;
+        const secretKey = document.getElementById('reg-secret-key').value;
 
         if (!username || !email || !password || !confirmPassword) {
             registerError.textContent = 'Пожалуйста, заполни все поля';
@@ -90,7 +91,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({
                     username,
                     email,
-                    password
+                    password,
+                    secret_key: secretKey
                 })
             });
 
@@ -111,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 loginTab.click();
                 document.getElementById('login-username').value = registeredUsername;
                 document.getElementById('login-password').focus();
-            }, 1500);
+            }, 500);
         } catch (error) {
             registerError.textContent = error.message;
         }
