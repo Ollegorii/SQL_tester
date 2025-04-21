@@ -8,7 +8,7 @@ import uuid
 import cx_Oracle
 
 # Настройки базы данных Oracle с cx_oracle
-DB_URL = "oracle+cx_oracle://USER_APP:maksim2003@158.160.94.135:1521/XE"
+DB_URL = "oracle+cx_oracle://USER_APP:maksim2003@51.250.96.36:1521/XE"
 
 # Создаем движок SQLAlchemy
 engine = create_engine(DB_URL)
@@ -23,6 +23,7 @@ class UserModel(Base):
     username = Column(String(100), unique=True)
     email = Column(String(100), unique=True)
     password = Column(String(100))
+    is_admin = Column(Boolean, default=False)
 
 class TaskModel(Base):
     __tablename__ = "tasks"
@@ -97,7 +98,7 @@ def create_test_tables():
 
     # Создаем отдельное соединение напрямую через cx_Oracle
     try:
-        dsn = cx_Oracle.makedsn("158.160.94.135", 1521, service_name="XE")
+        dsn = cx_Oracle.makedsn("51.250.96.36", 1521, service_name="XE")
         conn = cx_Oracle.connect(user="USER_APP", password="maksim2003", dsn=dsn)
         cursor = conn.cursor()
 
@@ -393,8 +394,10 @@ def init_data():
             id="-1",
             username="admin",
             email="admin@admin.com",
-            password="admin"
+            password="admin",
+            is_admin=True
         )
+
         db.add(admin_user)
         db.commit()
         print("Admin user created")
