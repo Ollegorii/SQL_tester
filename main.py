@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
 import jwt
 from datetime import datetime, timedelta
 import uuid
@@ -16,7 +16,7 @@ import pandas as pd
 import re
 import sqlparse
 
-from db_init import Base, UserModel, TaskModel, SchemaTableModel, SchemaColumnModel, UserProgressModel, MockResultModel
+from db_init import Base, UserModel, TaskModel, SchemaTableModel, SchemaColumnModel, UserProgressModel, MockResultModel, ResultSchemaModel
 
 app = FastAPI()
 
@@ -87,7 +87,52 @@ task_descriptions = {
     """
 }
 
-def get_result_schema_for_task(task_id):
+class UserCreate(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+    secret_key: Optional[str] = None
+
+class User(BaseModel):
+    id: str
+    username: str
+    email: EmailStr
+    is_admin: bool = False
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TaskResponse(BaseModel):
+    id: int
+    name: str
+    difficulty: str
+    solved: bool = False
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+def get_result_schema_for_task(task_id, db=None):
+    # Если передана сессия БД, используем её для получения схемы из базы
+    if db:
+        try:
+            schemas = db.query(ResultSchemaModel).filter(
+                ResultSchemaModel.task_id == task_id
+            ).all()
+            
+            if schemas:
+                return [
+                    {
+                        "name": schema.name,
+                        "type": schema.type,
+                        "description": schema.description
+                    }
+                    for schema in schemas
+                ]
+        except Exception as e:
+            print(f"Error loading result schema from DB: {e}")
+            # Если произошла ошибка, используем локальные данные
+    
+    # Используем локальные данные, если в БД нет или произошла ошибка
     result_schemas = {
         1: [
             {"name": "id", "type": "INTEGER", "description": "Employee ID"},
@@ -113,37 +158,14 @@ def get_result_schema_for_task(task_id):
             {"name": "running_total", "type": "DECIMAL", "description": "Running total of sales"}
         ],
         5: [
+            {"name": "employee_id", "type": "INTEGER", "description": "Employee ID"},
             {"name": "employee_name", "type": "VARCHAR", "description": "Employee name"},
-            {"name": "level", "type": "INTEGER", "description": "Hierarchy level"},
-            {"name": "manager_name", "type": "VARCHAR", "description": "Manager name (NULL for top level)"}
+            {"name": "department_id", "type": "INTEGER", "description": "Department ID"},
+            {"name": "manager_employee_id", "type": "INTEGER", "description": "Manager's employee ID"}
         ]
     }
 
     return result_schemas.get(task_id, [])
-
-class UserCreate(BaseModel):
-    username: str
-    email: EmailStr
-    password: str
-    secret_key: Optional[str] = None
-
-class User(BaseModel):
-    id: str
-    username: str
-    email: EmailStr
-    is_admin: bool = False
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-class TaskResponse(BaseModel):
-    id: int
-    name: str
-    difficulty: str
-    solved: bool = False
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 def is_query_safe(query, task_id):
     """
@@ -167,7 +189,7 @@ def is_query_safe(query, task_id):
 
         # Проверяем на наличие системных таблиц или пользовательских таблиц
         system_tables = ["users", "user_progress", "tasks", "mock_results",
-                        "schema_tables", "schema_columns"]
+                        "schema_tables", "schema_columns", "result_schemas"]
 
         for table in system_tables:
             if re.search(r'\b' + table + r'\b', query_lower):
@@ -202,7 +224,7 @@ def get_all_possible_tables():
         all_tables.update(tables)
 
     all_tables.update(["users", "user_progress", "tasks", "mock_results",
-                    "schema_tables", "schema_columns"])
+                    "schema_tables", "schema_columns", "result_schemas"])
 
     return all_tables
 
@@ -468,7 +490,10 @@ async def task_detail(request: Request, task_id: int):
 @app.get("/api/tasks/{task_id}")
 async def get_task(task_id: int, current_user: UserModel = Depends(get_current_user), db: Session = Depends(get_db)):
     task = db.query(TaskModel).filter(TaskModel.id == task_id).first()
-    result_schema = get_result_schema_for_task(task_id)
+    
+    # Передаем сессию БД для получения схемы результата
+    result_schema = get_result_schema_for_task(task_id, db)
+    
     if not task:
         raise HTTPException(status_code=404, detail="Задача не найдена")
 
@@ -696,66 +721,41 @@ async def get_available_tables(current_user: UserModel = Depends(get_current_use
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Требуются права администратора")
 
-    # Получаем все доступные таблицы из базы данных
-    try:
-        with engine.connect() as connection:
-            # Запрос для получения всех таблиц из базы данных Oracle
-            tables_query = text("""
-                SELECT table_name 
-                FROM user_tables 
-                WHERE table_name NOT IN ('USERS', 'USER_PROGRESS', 'TASKS', 'MOCK_RESULTS', 'SCHEMA_TABLES', 'SCHEMA_COLUMNS')
-                ORDER BY table_name
-            """)
+    # Получение списка таблиц из существующих таблиц в задачах
+    tables = db.query(SchemaTableModel.table_name).distinct().all()
+    table_names = [t[0] for t in tables]
+    
+    # Получение структур таблиц
+    available_tables = []
+    
+    for table_name in table_names:
+        # Нахождение первой задачи, использующей эту таблицу
+        table_instance = db.query(SchemaTableModel).filter(
+            SchemaTableModel.table_name == table_name
+        ).first()
+        
+        if table_instance:
+            # Получение столбцов для этой таблицы
+            columns = db.query(SchemaColumnModel).filter(
+                SchemaColumnModel.table_id == table_instance.id
+            ).all()
             
-            tables_result = connection.execute(tables_query)
-            table_names = [row[0] for row in tables_result]
+            columns_data = [
+                {
+                    "name": column.name,
+                    "type": column.type,
+                    "constraints": column.constraints
+                }
+                for column in columns
+            ]
             
-            available_tables = []
-            
-            for table_name in table_names:
-                # Для каждой таблицы получаем информацию о её столбцах
-                columns_query = text(f"""
-                    SELECT c.column_name, c.data_type, 
-                        CASE 
-                            WHEN con.constraint_type = 'P' THEN 'PRIMARY KEY'
-                            WHEN con.constraint_type = 'R' THEN 'FOREIGN KEY'
-                            WHEN c.nullable = 'N' THEN 'NOT NULL'
-                            ELSE ''
-                        END as constraint_info
-                    FROM user_tab_columns c
-                    LEFT JOIN (
-                        SELECT ucc.column_name, uc.constraint_type
-                        FROM user_constraints uc 
-                        JOIN user_cons_columns ucc ON uc.constraint_name = ucc.constraint_name
-                        WHERE uc.table_name = '{table_name}'
-                    ) con ON c.column_name = con.column_name
-                    WHERE c.table_name = '{table_name}'
-                    ORDER BY c.column_id
-                """)
-                
-                columns_result = connection.execute(columns_query)
-                columns = []
-                
-                for column in columns_result:
-                    columns.append({
-                        "name": column[0].lower(),
-                        "type": column[1],
-                        "constraints": column[2] or ""
-                    })
-                
-                if columns:  # Добавляем таблицу только если у неё есть столбцы
-                    available_tables.append({
-                        "name": table_name.lower(),
-                        "columns": columns
-                    })
-            
-            return available_tables
-    except Exception as e:
-        print(f"Error fetching database schema: {e}")
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Ошибка при получении схемы базы данных: {str(e)}")
-
+            if columns_data:
+                available_tables.append({
+                    "name": table_name,
+                    "columns": columns_data
+                })
+    
+    return available_tables
 
 @app.post("/api/admin/tasks")
 async def create_task(
@@ -920,6 +920,33 @@ async def create_task(
                 columns_list = ", ".join(results[0].keys())
                 global TASK_COLUMNS_INFO
                 TASK_COLUMNS_INFO[new_task_id] = f"Результат должен содержать столбцы: {columns_list}"
+                
+                # Сохраняем схему результата
+                max_schema_id = db.query(func.max(ResultSchemaModel.id)).scalar() or 0
+                schema_id = max_schema_id + 1
+                
+                for column_name in results[0].keys():
+                    # Определяем тип данных на основе значения в первой строке
+                    value = results[0][column_name]
+                    column_type = "VARCHAR"
+                    if isinstance(value, int) or (isinstance(value, str) and value.isdigit()):
+                        column_type = "INTEGER"
+                    elif isinstance(value, float) or (isinstance(value, str) and value.replace('.', '', 1).isdigit()):
+                        column_type = "DECIMAL"
+                    elif isinstance(value, str) and len(value) > 10 and '-' in value:
+                        # Простая проверка на возможную дату
+                        column_type = "DATE"
+                    
+                    # Создаем запись о схеме результата
+                    result_schema = ResultSchemaModel(
+                        id=schema_id,
+                        task_id=new_task_id,
+                        name=column_name,
+                        type=column_type,
+                        description=f"{column_name.title()} value"  # Простое описание
+                    )
+                    db.add(result_schema)
+                    schema_id += 1
 
         # Создаем записи о прогрессе для всех пользователей
         all_users = db.query(UserModel).all()
@@ -947,7 +974,6 @@ async def create_task(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Ошибка при создании задачи: {str(e)}")
-
 
 @app.post("/api/admin/run-query")
 async def run_admin_query(
@@ -986,48 +1012,6 @@ async def run_admin_query(
         traceback.print_exc()
         return {"success": False, "error": f"Непредвиденная ошибка: {str(e)}"}
 
-
-def simulate_admin_query_execution(query, selected_tables):
-    # Very basic SQL validation
-    if "drop" in query.lower() or "delete" in query.lower() or "update" in query.lower() or "insert" in query.lower():
-        raise Exception("Only SELECT statements are allowed")
-
-    # Generate a sample result set based on the query and selected tables
-    # In a real application, this would execute the query against a database
-
-    # Mock data generation based on tables
-    if not selected_tables:
-        return []
-
-    # Create mock results - simple demonstration data
-    columns = []
-    data = []
-
-    # Generate some sample data based on the tables
-    if "employees" in selected_tables:
-        columns = ["id", "name", "department_id", "salary", "hire_date"]
-        data = [
-            {"id": 1, "name": "John Doe", "department_id": 1, "salary": 5000, "hire_date": "2020-01-15"},
-            {"id": 2, "name": "Jane Smith", "department_id": 2, "salary": 6000, "hire_date": "2019-05-20"},
-            {"id": 3, "name": "Bob Johnson", "department_id": 1, "salary": 4500, "hire_date": "2021-03-10"}
-        ]
-    elif "departments" in selected_tables:
-        columns = ["id", "name", "location"]
-        data = [
-            {"id": 1, "name": "Engineering", "location": "New York"},
-            {"id": 2, "name": "Marketing", "location": "San Francisco"},
-            {"id": 3, "name": "HR", "location": "Chicago"}
-        ]
-    elif "sales" in selected_tables:
-        columns = ["id", "product_id", "customer_id", "sale_date", "quantity", "amount"]
-        data = [
-            {"id": 1, "product_id": 101, "customer_id": 201, "sale_date": "2023-01-15", "quantity": 2, "amount": 120.50},
-            {"id": 2, "product_id": 102, "customer_id": 202, "sale_date": "2023-01-20", "quantity": 1, "amount": 85.99},
-            {"id": 3, "product_id": 101, "customer_id": 203, "sale_date": "2023-02-05", "quantity": 3, "amount": 180.75}
-        ]
-
-    return data
-
 @app.get("/admin/create-task", response_class=HTMLResponse)
 async def admin_create_task(request: Request):
     return templates.TemplateResponse("admin_create_task.html", {"request": request})
@@ -1036,3 +1020,4 @@ async def admin_create_task(request: Request):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
