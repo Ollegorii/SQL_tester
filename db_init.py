@@ -8,7 +8,7 @@ import uuid
 import cx_Oracle
 
 # Настройки базы данных Oracle с cx_oracle
-DB_URL = "oracle+cx_oracle://USER_APP:maksim2003@158.160.94.135:1521/XE"
+DB_URL = "oracle+cx_oracle://USER_APP:maksim2003@51.250.96.36:1521/XE"
 
 # Создаем движок SQLAlchemy
 engine = create_engine(DB_URL)
@@ -23,6 +23,7 @@ class UserModel(Base):
     username = Column(String(100), unique=True)
     email = Column(String(100), unique=True)
     password = Column(String(100))
+    is_admin = Column(Boolean, default=False)
 
 class TaskModel(Base):
     __tablename__ = "tasks"
@@ -63,6 +64,15 @@ class MockResultModel(Base):
     task_id = Column(Integer, ForeignKey("tasks.id"))
     result_data = Column(Text)  # JSON строка с мок-результатами
 
+class ResultSchemaModel(Base):
+    __tablename__ = "result_schemas"
+
+    id = Column(Integer, primary_key=True)
+    task_id = Column(Integer, ForeignKey("tasks.id"))
+    name = Column(String(100))
+    type = Column(String(100))
+    description = Column(String(200))
+
 def drop_all_tables():
     """Удаляет все таблицы из БД"""
     connection = engine.connect()
@@ -73,6 +83,7 @@ def drop_all_tables():
         "mock_results",
         "schema_columns",
         "schema_tables",
+        "result_schemas", # Добавлена новая таблица
         "tasks",
         "users"
     ]
@@ -97,7 +108,7 @@ def create_test_tables():
 
     # Создаем отдельное соединение напрямую через cx_Oracle
     try:
-        dsn = cx_Oracle.makedsn("158.160.94.135", 1521, service_name="XE")
+        dsn = cx_Oracle.makedsn("51.250.96.36", 1521, service_name="XE")
         conn = cx_Oracle.connect(user="USER_APP", password="maksim2003", dsn=dsn)
         cursor = conn.cursor()
 
@@ -371,8 +382,6 @@ def create_test_tables():
             conn.close()
         print("Test tables creation process completed")
 
-
-
 def init_data():
     """Инициализирует данные в таблицах"""
     # Полностью сбрасываем базу данных
@@ -393,8 +402,10 @@ def init_data():
             id="-1",
             username="admin",
             email="admin@admin.com",
-            password="admin"
+            password="admin",
+            is_admin=True
         )
+
         db.add(admin_user)
         db.commit()
         print("Admin user created")
@@ -632,6 +643,55 @@ def init_data():
         db.commit()
         print("Mock results created")
 
+                # Добавляем схемы результатов для каждой задачи
+        result_schemas = {
+            1: [
+                {"name": "id", "type": "INTEGER", "description": "Employee ID"},
+                {"name": "name", "type": "VARCHAR", "description": "Employee name"},
+                {"name": "department_id", "type": "INTEGER", "description": "Department ID"},
+                {"name": "salary", "type": "DECIMAL", "description": "Employee salary"},
+                {"name": "hire_date", "type": "DATE", "description": "Date when employee was hired"}
+            ],
+            2: [
+                {"name": "department_id", "type": "INTEGER", "description": "Department ID"},
+                {"name": "department_name", "type": "VARCHAR", "description": "Department name"},
+                {"name": "count", "type": "INTEGER", "description": "Number of employees in the department"}
+            ],
+            3: [
+                {"name": "employee_name", "type": "VARCHAR", "description": "Employee name"},
+                {"name": "department_name", "type": "VARCHAR", "description": "Department name"},
+                {"name": "project_count", "type": "INTEGER", "description": "Number of projects the employee is working on"}
+            ],
+            4: [
+                {"name": "month", "type": "VARCHAR", "description": "Month of sales"},
+                {"name": "product", "type": "VARCHAR", "description": "Product name"},
+                {"name": "total_sales", "type": "DECIMAL", "description": "Total sales amount for the month"},
+                {"name": "running_total", "type": "DECIMAL", "description": "Running total of sales"}
+            ],
+            5: [
+                {"name": "employee_id", "type": "INTEGER", "description": "Employee ID"},
+                {"name": "employee_name", "type": "VARCHAR", "description": "Employee name"},
+                {"name": "department_id", "type": "INTEGER", "description": "Department ID"},
+                {"name": "manager_employee_id", "type": "INTEGER", "description": "Manager's employee ID"}
+            ]
+        }
+
+        schema_id = 1
+        for task_id, schemas in result_schemas.items():
+            for schema in schemas:
+                result_schema = ResultSchemaModel(
+                    id=schema_id,
+                    task_id=task_id,
+                    name=schema["name"],
+                    type=schema["type"],
+                    description=schema["description"]
+                )
+                db.add(result_schema)
+                schema_id += 1
+
+        db.commit()
+        print("Result schemas created")
+
         # Создаем прогресс для админа
         admin = db.query(UserModel).filter(UserModel.username == "admin").first()
         if admin:
@@ -661,3 +721,4 @@ if __name__ == "__main__":
     print("\nCreating test tables for query validation...")
     create_test_tables()
     print("Test tables creation complete")
+
