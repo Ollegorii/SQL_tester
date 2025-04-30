@@ -54,6 +54,20 @@ class TaskResponse(BaseModel):
     difficulty: str
     solved: bool = False
 
+class ResultColumnSchema(BaseModel):
+    name: str
+    type: str
+    sort: str  # "none", "ascending", or "descending"
+    description: str
+
+class TaskCreate(BaseModel):
+    name: str
+    description: str
+    difficulty: str
+    tables: list[str]
+    solution_query: str
+    result_schema: list[ResultColumnSchema]
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 def create_access_token(data: dict):
@@ -75,7 +89,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("auth.html", {"request": request})
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
@@ -198,7 +212,7 @@ async def get_task(task_id: int, current_user: dict = Depends(get_current_user))
         "description": task["description"],
         "solved": is_solved,
         "schema": schema_info,
-        "result_schema": result_schema,
+        "result_schema": task["result_schema"],
     }
 
 @app.post("/api/tasks/{task_id}/run")
@@ -502,34 +516,31 @@ async def get_available_tables(current_user: dict = Depends(get_current_user)):
 
 @app.post("/api/admin/tasks")
 async def create_task(
-    task_data: dict = Body(...),
+    task_data: TaskCreate,
     current_user: dict = Depends(get_current_user)
 ):
     if not current_user.get("is_admin", False):
         raise HTTPException(status_code=403, detail="Admin access required")
 
-    # Validate required fields
-    required_fields = ["name", "description", "difficulty", "solution_query", "tables"]
-    for field in required_fields:
-        if field not in task_data:
-            raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
+    next_id = max([task["id"] for task in tasks_db], default=0) + 1
 
-    # Create new task ID
-    task_id = len(tasks_db) + 1
-
-    # Add new task to tasks_db
     new_task = {
-        "id": task_id,
-        "name": task_data["name"],
-        "description": task_data["description"],
-        "difficulty": task_data["difficulty"],
-        "solution_query": task_data["solution_query"],
-        "tables": task_data["tables"]
+        "id": next_id,
+        "name": task_data.name,
+        "difficulty": task_data.difficulty,
+        "description": task_data.description,
+        "solution_query": task_data.solution_query,
+        "result_schema": [col.model_dump() for col in task_data.result_schema]
     }
+
+    print(f"Task data: {task_data.dict()}\nNew task: {new_task}")
 
     tasks_db.append(new_task)
 
-    return {"success": True, "task_id": task_id}
+    for user_id in user_progress:
+        user_progress[user_id][next_id] = False
+
+    return {"id": next_id, "message": "Task created successfully"}
 
 @app.post("/api/admin/run-query")
 async def run_admin_query(
