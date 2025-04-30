@@ -321,6 +321,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <tr>
                                 <th>Имя колонки</th>
                                 <th>Тип данных</th>
+                                <th>Сортировка</th>
                                 <th>Описание</th>
                             </tr>
                         </thead>
@@ -328,10 +329,20 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
 
         resultSchema.forEach(column => {
+            let sortText = '';
+            if (column.sort === 'ascending') {
+                sortText = 'По возрастанию';
+            } else if (column.sort === 'descending') {
+                sortText = 'По убыванию';
+            } else {
+                sortText = 'Нет';
+            }
+
             schemaHtml += `
                 <tr>
                     <td><strong>${column.name}</strong></td>
                     <td>${column.type}</td>
+                    <td>${sortText}</td>
                     <td class="column-description">${column.description}</td>
                 </tr>
             `;

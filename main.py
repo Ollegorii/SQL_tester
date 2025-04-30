@@ -118,12 +118,13 @@ def get_result_schema_for_task(task_id, db=None):
             schemas = db.query(ResultSchemaModel).filter(
                 ResultSchemaModel.task_id == task_id
             ).all()
-            
+
             if schemas:
                 return [
                     {
                         "name": schema.name,
                         "type": schema.type,
+                        "sort": schema.sort,
                         "description": schema.description
                     }
                     for schema in schemas
@@ -131,7 +132,7 @@ def get_result_schema_for_task(task_id, db=None):
         except Exception as e:
             print(f"Error loading result schema from DB: {e}")
             # Если произошла ошибка, используем локальные данные
-    
+
     # Используем локальные данные, если в БД нет или произошла ошибка
     result_schemas = {
         1: [
@@ -490,10 +491,10 @@ async def task_detail(request: Request, task_id: int):
 @app.get("/api/tasks/{task_id}")
 async def get_task(task_id: int, current_user: UserModel = Depends(get_current_user), db: Session = Depends(get_db)):
     task = db.query(TaskModel).filter(TaskModel.id == task_id).first()
-    
+
     # Передаем сессию БД для получения схемы результата
     result_schema = get_result_schema_for_task(task_id, db)
-    
+
     if not task:
         raise HTTPException(status_code=404, detail="Задача не найдена")
 
@@ -724,22 +725,22 @@ async def get_available_tables(current_user: UserModel = Depends(get_current_use
     # Получение списка таблиц из существующих таблиц в задачах
     tables = db.query(SchemaTableModel.table_name).distinct().all()
     table_names = [t[0] for t in tables]
-    
+
     # Получение структур таблиц
     available_tables = []
-    
+
     for table_name in table_names:
         # Нахождение первой задачи, использующей эту таблицу
         table_instance = db.query(SchemaTableModel).filter(
             SchemaTableModel.table_name == table_name
         ).first()
-        
+
         if table_instance:
             # Получение столбцов для этой таблицы
             columns = db.query(SchemaColumnModel).filter(
                 SchemaColumnModel.table_id == table_instance.id
             ).all()
-            
+
             columns_data = [
                 {
                     "name": column.name,
@@ -748,13 +749,13 @@ async def get_available_tables(current_user: UserModel = Depends(get_current_use
                 }
                 for column in columns
             ]
-            
+
             if columns_data:
                 available_tables.append({
                     "name": table_name,
                     "columns": columns_data
                 })
-    
+
     return available_tables
 
 @app.post("/api/admin/tasks")
@@ -792,7 +793,7 @@ async def create_task(
         # Получаем максимальный ID таблицы
         max_table_id = db.query(func.max(SchemaTableModel.id)).scalar() or 0
         table_id = max_table_id + 1
-        
+
         # Получаем максимальный ID колонки
         max_column_id = db.query(func.max(SchemaColumnModel.id)).scalar() or 0
         column_id = max_column_id + 1
@@ -806,7 +807,7 @@ async def create_task(
                 existing_schema_table = db.query(SchemaTableModel).filter(
                     SchemaTableModel.table_name == table_name
                 ).first()
-                
+
                 if existing_schema_table:
                     # Копируем структуру из существующей таблицы
                     schema_table = SchemaTableModel(
@@ -816,11 +817,11 @@ async def create_task(
                     )
                     db.add(schema_table)
                     db.flush()
-                    
+
                     existing_columns = db.query(SchemaColumnModel).filter(
                         SchemaColumnModel.table_id == existing_schema_table.id
                     ).all()
-                    
+
                     for existing_column in existing_columns:
                         schema_column = SchemaColumnModel(
                             id=column_id,
@@ -831,7 +832,7 @@ async def create_task(
                         )
                         db.add(schema_column)
                         column_id += 1
-                    
+
                     table_id += 1
                 else:
                     # Если таблица не найдена, просто добавляем имя таблицы
@@ -842,13 +843,13 @@ async def create_task(
                     )
                     db.add(schema_table)
                     table_id += 1
-                
+
             # Если table_info является словарем, обрабатываем как раньше
             elif isinstance(table_info, dict):
                 table_name = table_info.get("name")
                 if not table_name:
                     continue
-                    
+
                 # Создаем запись о таблице
                 schema_table = SchemaTableModel(
                     id=table_id,
@@ -857,7 +858,7 @@ async def create_task(
                 )
                 db.add(schema_table)
                 db.flush()
-                
+
                 # Добавляем колонки
                 columns = table_info.get("columns", [])
                 for column_info in columns:
@@ -870,7 +871,7 @@ async def create_task(
                     )
                     db.add(schema_column)
                     column_id += 1
-                    
+
                 table_id += 1
 
         # Выполняем эталонный запрос и сохраняем результаты
@@ -883,48 +884,48 @@ async def create_task(
                     allowed_tables.append(table_info.lower())
                 elif isinstance(table_info, dict) and "name" in table_info:
                     allowed_tables.append(table_info["name"].lower())
-            
+
             # Добавляем новую задачу в глобальный словарь разрешенных таблиц
             global ALLOWED_TABLES
             ALLOWED_TABLES[new_task_id] = allowed_tables
-                
+
             # Проверяем безопасность запроса
             is_safe, error_message = is_query_safe(solution_query, new_task_id)
             if not is_safe:
                 db.rollback()
                 return {"success": False, "message": error_message}
-                
+
             # Выполняем запрос на тестовой БД
             results, error = execute_query(solution_query, test_engine)
-            
+
             if error:
                 db.rollback()
                 return {
-                    "success": False, 
+                    "success": False,
                     "message": f"Ошибка выполнения эталонного запроса: {error}"
                 }
-                
+
             # Сохраняем результаты как эталонные
             max_mock_id = db.query(func.max(MockResultModel.id)).scalar() or 0
             new_mock_id = max_mock_id + 1
-            
+
             mock_result = MockResultModel(
                 id=new_mock_id,
                 task_id=new_task_id,
                 result_data=json.dumps(results)
             )
             db.add(mock_result)
-            
+
             # Добавляем информацию о столбцах в глобальную переменную
             if results:
                 columns_list = ", ".join(results[0].keys())
                 global TASK_COLUMNS_INFO
                 TASK_COLUMNS_INFO[new_task_id] = f"Результат должен содержать столбцы: {columns_list}"
-                
+
                 # Сохраняем схему результата
                 max_schema_id = db.query(func.max(ResultSchemaModel.id)).scalar() or 0
                 schema_id = max_schema_id + 1
-                
+
                 for column_name in results[0].keys():
                     # Определяем тип данных на основе значения в первой строке
                     value = results[0][column_name]
@@ -936,7 +937,7 @@ async def create_task(
                     elif isinstance(value, str) and len(value) > 10 and '-' in value:
                         # Простая проверка на возможную дату
                         column_type = "DATE"
-                    
+
                     # Создаем запись о схеме результата
                     result_schema = ResultSchemaModel(
                         id=schema_id,
@@ -952,7 +953,7 @@ async def create_task(
         all_users = db.query(UserModel).all()
         max_progress_id = db.query(func.max(UserProgressModel.id)).scalar() or 0
         progress_id = max_progress_id + 1
-        
+
         for user in all_users:
             progress = UserProgressModel(
                 id=progress_id,
@@ -965,9 +966,9 @@ async def create_task(
 
         # Фиксируем все изменения
         db.commit()
-        
+
         return {"success": True, "task_id": new_task_id}
-        
+
     except Exception as e:
         db.rollback()
         print(f"Error creating task: {e}")
@@ -985,14 +986,14 @@ async def run_admin_query(
         raise HTTPException(status_code=403, detail="Требуются права администратора")
 
     sql_query = query_data.get("query", "")
-    
+
     if not sql_query.strip():
         raise HTTPException(status_code=400, detail="Запрос не может быть пустым")
 
     # Проверка на опасные операции - базовая безопасность
     dangerous_operations = ["drop", "truncate", "delete", "update", "insert", "alter", "create",
                           "grant", "revoke", "commit", "rollback", "savepoint"]
-    
+
     query_lower = sql_query.lower()
     for op in dangerous_operations:
         if re.search(r'\b' + op + r'\b', query_lower):
@@ -1001,10 +1002,10 @@ async def run_admin_query(
     try:
         # Выполняем запрос на тестовой БД
         results, error = execute_query(sql_query, test_engine)
-        
+
         if error:
             return {"success": False, "error": f"Ошибка выполнения запроса: {error}"}
-        
+
         return {"success": True, "results": results}
     except Exception as e:
         print(f"Error executing admin query: {e}")
@@ -1020,4 +1021,3 @@ async def admin_create_task(request: Request):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-

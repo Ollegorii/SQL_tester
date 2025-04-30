@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let availableTables = [];
     let selectedTables = [];
-    let resultColumns = [];
     let editor;
 
     initializeEditor();
@@ -203,6 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function addResultColumn() {
         const columnId = Date.now();
         const columnRow = document.createElement('div');
+        let columnSort = 'none';
         columnRow.className = 'result-column-row';
         columnRow.setAttribute('data-id', columnId);
 
@@ -210,6 +210,11 @@ document.addEventListener('DOMContentLoaded', function() {
             <div style="display: flex; gap: 1rem; margin-bottom: 0.5rem;">
                 <input type="text" placeholder="Имя колонки" class="column-name" style="flex: 1;">
                 <input type="text" placeholder="Тип данных" class="column-type" style="flex: 1;">
+                <select class="column-sort" style="flex: 1;">
+                    <option value="none" ${columnSort === 'none' ? 'selected' : ''}>Нет сортировки</option>
+                    <option value="ascending" ${columnSort === 'ascending' ? 'selected' : ''}>По возрастанию</option>
+                    <option value="descending" ${columnSort === 'descending' ? 'selected' : ''}>По убыванию</option>
+                </select>
                 <input type="text" placeholder="Описание" class="column-description" style="flex: 2;">
                 <button data-id="${columnId}" class="btn remove-column">
                     <i class="fas fa-times"></i>
@@ -229,12 +234,14 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.result-column-row').forEach(row => {
             const nameInput = row.querySelector('.column-name');
             const typeInput = row.querySelector('.column-type');
+            const sortType = row.querySelector('.column-sort');
             const descriptionInput = row.querySelector('.column-description');
 
             if (nameInput.value.trim() && typeInput.value.trim()) {
                 columns.push({
                     name: nameInput.value.trim(),
                     type: typeInput.value.trim(),
+                    sort: sortType.value.trim(),
                     description: descriptionInput.value.trim() || ''
                 });
             }
