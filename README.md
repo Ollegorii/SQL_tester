@@ -57,7 +57,7 @@
 
 - **Frontend**: HTML5, CSS3, and vanilla JavaScript
 
-- **База данных**: SQLite (на начальном этапе)
+- **База данных**: Oracle
 
 - **Тестирование**: pytest
 
@@ -79,4 +79,4 @@ pip install -r requirements.txt
 ```
 python main.py
 ```
-3. Откройте в браузере http://localhost:8000
+3. Откройте в браузере [http://localhost:8000](http://51.250.100.249:8000)
