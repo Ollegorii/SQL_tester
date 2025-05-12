@@ -24,8 +24,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
 
-DB_URL = "oracle+cx_oracle://USER_APP:maksim2003@51.250.96.36:1521/XE"
-TEST_DB_URL = "oracle+cx_oracle://USER_APP:maksim2003@51.250.96.36:1521/XE"  # Тестовая БД для проверки запросов
+DB_URL = "oracle+cx_oracle://USER_APP:maksim2003@51.250.100.249:1521/XE"
+TEST_DB_URL = "oracle+cx_oracle://USER_APP:maksim2003@51.250.100.249:1521/XE"  # Тестовая БД для проверки запросов
 
 engine = create_engine(DB_URL)
 test_engine = create_engine(TEST_DB_URL)
@@ -358,7 +358,7 @@ def compare_results(actual_results, expected_data):
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("auth.html", {"request": request})
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
