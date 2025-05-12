@@ -124,7 +124,6 @@ def get_result_schema_for_task(task_id, db=None):
                     {
                         "name": schema.name,
                         "type": schema.type,
-                        "sort": schema.sort,
                         "description": schema.description
                     }
                     for schema in schemas

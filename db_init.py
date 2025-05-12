@@ -71,7 +71,6 @@ class ResultSchemaModel(Base):
     task_id = Column(Integer, ForeignKey("tasks.id"))
     name = Column(String(100))
     type = Column(String(100))
-    sort = Column(String(20))  # "none", "ascending", or "descending"
     description = Column(String(200))
 
 def drop_all_tables():
