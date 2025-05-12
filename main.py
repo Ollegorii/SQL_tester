@@ -35,7 +35,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 SECRET_KEY = "your_secret_key_here"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
-ADMIN_SECRET_KEY = "admin"
+ADMIN_SECRET_KEY = "super_hard_word"
 
 # Информация о требуемых столбцах для каждой задачи
 TASK_COLUMNS_INFO = {
