@@ -8,7 +8,7 @@ import uuid
 import cx_Oracle
 
 # Настройки базы данных Oracle с cx_oracle
-DB_URL = "oracle+cx_oracle://USER_APP:maksim2003@51.250.96.36:1521/XE"
+DB_URL = "oracle+cx_oracle://USER_APP:maksim2003@51.250.100.249:1521/XE"
 
 # Создаем движок SQLAlchemy
 engine = create_engine(DB_URL)
